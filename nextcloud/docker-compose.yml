@@ -1,0 +1,141 @@
+services:
+  nextcloud-db:
+    image: ${NEXTCLOUD_DB_IMAGE}
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW --innodb_read_only_compressed=OFF
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.monitor-only=true"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - nextcloud_db_data:/var/lib/mysql
+    networks:
+      - nextcloud_net
+    environment:
+      - MARIADB_USER=nextcloud
+      - MARIADB_PASSWORD=/run/secrets/nextcloud_db_password
+      - MARIADB_DATABASE=nextcloud
+      - MARIADB_ROOT_PASSWORD=/run/secrets/nextcloud_db_root_password
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_bin
+    secrets:
+      - nextcloud_db_password
+      - nextcloud_db_root_password
+
+  nextcloud-redis:
+    image: ${NEXTCLOUD_REDIS_IMAGE}
+    command: sh -c "redis-server --requirepass $(cat $$REDIS_PASSWORD_FILE)"
+    # Use Redis password from secrets file: https://stackoverflow.com/a/76353338
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.monitor-only=true"
+    volumes:
+      - nextcloud_redis_data:/data
+    networks:
+      - nextcloud_net
+    environment:
+      - REDIS_PASSWORD_FILE=/run/secrets/nextcloud_redis_password
+    secrets:
+      - nextcloud_redis_password
+
+  nextcloud:
+    # Webbased file storage solution
+    image: ${NEXTCLOUD_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+      - "traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_DOMAIN}`)"
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.routers.nextcloud.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud_hsts,nextcloud-dav"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent=true"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex='https://(.*)/.well-known/(?:card|cal)dav'"
+      - "traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement='https://$${1}/remote.php/dav'"
+      - "traefik.http.middlewares.nextcloud_hsts.headers.STSIncludeSubdomains=true"
+      - "traefik.http.middlewares.nextcloud_hsts.headers.STSPreload=true"
+      - "traefik.http.middlewares.nextcloud_hsts.headers.STSSeconds=15552000"
+      - "traefik.http.middlewares.nextcloud_hsts.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.nextcloud-dav.replacepathregex.regex=^/.well-known/ca(l|rd)dav"
+      - "traefik.http.middlewares.nextcloud-dav.replacepathregex.replacement=/remote.php/dav/"
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.monitor-only=true"
+    volumes:
+      - nextcloud_data:/var/www/html
+    networks:
+      - nextcloud_net
+    environment:
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud_db_password
+      - MYSQL_HOST=nextcloud-db
+      - REDIS_HOST=nextcloud-redis
+      - REDIS_HOST_PORT=6379
+      - REDIS_HOST_PASSWORD_FILE=/run/secrets/nextcloud_redis_password
+      - TRUSTED_PROXIES=172.16.0.0/12
+      - OVERWRITEPROTOCOL=https
+      - OVERWRITECLIURL=https://${NEXTCLOUD_DOMAIN}
+      - OVERWRITEHOST=${NEXTCLOUD_DOMAIN}
+    secrets:
+      - nextcloud_db_password
+      - nextcloud_redis_password
+
+  ###
+  # Alternative way for implementing the cron job:
+  # - Open cron tab: sudo crontab -e
+  # - Add rule: */5 * * * * docker exec -u www-data nextcloud php /var/www/html/cron.php
+  ###
+  nextcloud-cron:
+    image: ${NEXTCLOUD_IMAGE}
+    restart: unless-stopped
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud
+      - nextcloud-db
+      - nextcloud-redis
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.monitor-only=true"
+    volumes:
+      - nextcloud_data:/var/www/html
+    networks:
+      - nextcloud_net
+    environment:
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud_db_password
+      - MYSQL_HOST=nextcloud-db
+      - REDIS_HOST=nextcloud-redis
+      - REDIS_HOST_PORT=6379
+      - REDIS_HOST_PASSWORD_FILE=/run/secrets/nextcloud_redis_password
+      - TRUSTED_PROXIES=172.16.0.0/12
+      - OVERWRITEPROTOCOL=https
+      - OVERWRITECLIURL=https://${NEXTCLOUD_DOMAIN}
+      - OVERWRITEHOST=${NEXTCLOUD_DOMAIN}
+    secrets:
+      - nextcloud_db_password
+      - nextcloud_redis_password
+
+volumes:
+  nextcloud_data:
+  nextcloud_db_data:
+  nextcloud_redis_data:
+
+networks:
+  nextcloud_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  nextcloud_db_password:
+    file: nextcloud_db_password.txt
+  nextcloud_redis_password:
+    file: nextcloud_redis_password.txt
+  nextcloud_db_root_password:
+    file: nextcloud_db_root_password.txt
