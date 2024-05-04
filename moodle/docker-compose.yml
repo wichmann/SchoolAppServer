@@ -1,0 +1,76 @@
+services:
+  moodle-db:
+    image: ${MOODLE_DB_IMAGE}
+    restart: unless-stopped
+    environment:
+      - MARIADB_USER=moodle
+      - MARIADB_PASSWORD=/run/secrets/moodle_db_password
+      - MARIADB_DATABASE=moodle
+      - MARIADB_ROOT_PASSWORD=/run/secrets/moodle_db_root_password
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    volumes:
+      - moodle_db_data:/var/lib/mysql
+    networks:
+      - school_net
+    secrets:
+      - moodle_db_root_password
+      - moodle_db_password
+
+  moodle:
+    image: ${MOODLE_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - moodle-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.moodle.loadbalancer.server.port=8080"
+      - "traefik.http.routers.moodle.rule=Host(`${MOODLE_DOMAIN1}`) || Host(`${MOODLE_DOMAIN2}`)"
+      - "traefik.http.routers.moodle.tls=true"
+      - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
+    networks:
+      - school_net
+    environment:
+      - MOODLE_DATABASE_HOST=moodle-db
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=moodle
+      - MOODLE_DATABASE_PASSWORD=/run/secrets/moodle_db_password
+      - MOODLE_DATABASE_NAME=moodle
+      - MOODLE_USERNAME=admin
+      - MOODLE_PASSWORD=1234
+      - MOODLE_EMAIL=mail@example.com
+      - MOODLE_SITE_NAME=Test-Moodle
+      - MOODLE_HOST=${MOODLE_DOMAIN1}
+      #- MOODLE_REVERSEPROXY=true
+      #- MOODLE_SSLPROXY=true
+      - MOODLE_LANG=de
+      - MOODLE_SMTP_HOST=${MOODLE_SMTP_ADDR}
+      - MOODLE_SMTP_PORT=465
+      - MOODLE_SMTP_USER=${MOODLE_SMTP_USER}
+      - MOODLE_SMTP_PASSWORD=/run/secrets/moodle_smtp_password
+      - MOODLE_SMTP_PROTOCOL=ssl
+    secrets:
+      - moodle_db_password
+      - moodle_smtp_password
+
+volumes:
+  moodle_data:
+  moodledata_data:
+  moodle_db_data:
+
+networks:
+  school_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  moodle_db_root_password:
+    file: moodle_db_root_password.txt
+  moodle_db_password:
+    file: moodle_db_password.txt
+  moodle_smtp_password:
+    file: moodle_smtp_password.txt
