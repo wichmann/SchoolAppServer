@@ -1,0 +1,47 @@
+services:
+  kanboard:
+    # Project management Kanban-style
+    # default credentials: admin/admin
+    # https://docs.kanboard.org/v1/admin/docker/
+    image: ${KANBOARD_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.kanboard.loadbalancer.server.port=80"
+      - "traefik.http.routers.kanboard.rule=Host(`${KANBOARD_DOMAIN}`)"
+      - "traefik.http.routers.kanboard.tls=true"
+      - "traefik.http.routers.kanboard.tls.certresolver=letsencrypt"
+      - "com.centurylinklabs.watchtower.enable=false"
+    volumes:
+     - kanboard_data:/var/www/app/data
+     - kanboard_plugins:/var/www/app/plugins
+     - kanboard_ssl:/etc/nginx/ssl
+    networks:
+      - kanboard_net
+    environment:
+      - PLUGIN_INSTALLER=true
+      - MAIL_CONFIGURATION=true
+      - MAIL_FROM=${KANBOARD_SMTP_USER}
+      - MAIL_TRANSPORT=smtp
+      - MAIL_SMTP_HOSTNAME=${KANBOARD_SMTP_ADDR}
+      - MAIL_SMTP_PORT=${KANBOARD_SMTP_PORT}
+      - MAIL_SMTP_USERNAME=${KANBOARD_SMTP_USER}
+      - MAIL_SMTP_PASSWORD=/run/secrets/kanboard_smtp_password
+      - MAIL_SMTP_ENCRYPTION=ssl
+    secrets:
+      - kanboard_smtp_password
+
+volumes:
+  kanboard_data:
+  kanboard_plugins:
+  kanboard_ssl:
+
+networks:
+  kanboard_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  kanboard_smtp_password:
+    file: kanboard_smtp_password.txt
