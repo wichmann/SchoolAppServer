@@ -1,0 +1,23 @@
+services:
+  stirlingpdf:
+    image: ${STIRLINGPDF_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.http.services.stirlingpdf.loadbalancer.server.port=8080"
+      - "traefik.http.routers.stirlingpdf.rule=Host(`${STIRLINGPDF_DOMAIN}`)"
+      - "traefik.http.routers.stirlingpdf.tls=true"
+      - "traefik.http.routers.stirlingpdf.tls.certresolver=letsencrypt"
+    networks:
+      - tools_net
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+    healthcheck:
+      # Run traefik healthcheck command
+      # https://doc.traefik.io/traefik/operations/cli/#healthcheck
+      test: [ "CMD-SHELL", "curl -f http://stirlingpdf:8080 || exit 1" ]
+
+networks:
+  tools_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
