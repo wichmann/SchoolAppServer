@@ -1,6 +1,7 @@
 # SchoolAppServer
 
-All Docker Compose scripts to setup a schools app server. Provides the following services:
+Configures and prepares Docker Compose scripts to setup a schools app server.
+It provides Docker stacks containing the following services:
 
 * Traefik
 * Portainer
@@ -13,3 +14,15 @@ All Docker Compose scripts to setup a schools app server. Provides the following
 * StirlingPDF
 * Homer
 * Heimdall
+
+## Usage
+
+After cloning the repository you should generate all configuration and
+passwords files:
+
+    ./school_app_server.py --initial-setup
+
+If all stack are configured properly you can start and stop them by executing
+the script without parameters:
+
+    ./school_app_server.py
