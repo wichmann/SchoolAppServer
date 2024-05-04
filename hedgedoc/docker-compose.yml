@@ -1,0 +1,74 @@
+services:
+  hedgedoc-db:
+    image: ${HEDGEDOC_DB_IMAGE}
+    restart: always
+    environment:
+      - POSTGRES_USER=hedgedoc
+      - POSTGRES_PASSWORD=/run/secrets/hedgedoc_db_password
+      - POSTGRES_DB=hedgedoc
+    volumes:
+      - hedgedoc_db_data:/var/lib/postgresql/data
+    networks:
+      - hedgedoc_net
+    secrets:
+      - hedgedoc_db_password
+
+  hedgedoc:
+    # Online Markdown Editor
+    # https://docs.hedgedoc.org/setup/docker/ 
+    image: ${HEDGEDOC_IMAGE}
+    restart: always
+    depends_on:
+      - hedgedoc-db
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.hedgedoc.loadbalancer.server.port=3000
+      - traefik.http.routers.hedgedoc.rule=Host(`${HEDGEDOC_DOMAIN}`)
+      - traefik.http.routers.hedgedoc.tls=true
+      - traefik.http.routers.hedgedoc.tls.certresolver=letsencrypt
+      # prevent unauthorized access to the /metrics endpoint
+      #- traefik.http.routers.hedgedoc-metrics.rule=Host(`${HEDGEDOC_DOMAIN}`) && PathPrefix(`/metrics`)
+      #- traefik.http.routers.hedgedoc-metrics.service=hedgedoc
+      #- traefik.http.services.hedgedoc-metrics.loadbalancer.server.port=3000
+    environment:
+      - TZ=Europe/Berlin
+      - CMD_DB_USERNAME=hedgedoc
+      - CMD_DB_PASSWORD=/run/secrets/hedgedoc_db_password
+      - CMD_DB_DATABASE=hedgedoc
+      - CMD_DB_HOST=hedgedoc-db
+      - CMD_DB_PORT=5432
+      - CMD_DB_DIALECT=postgres
+      - CMD_DOMAIN=${HEDGEDOC_DOMAIN}
+      - CMD_URL_ADDPORT=false
+      - CMD_PROTOCOL_USESSL=true
+      - CMD_SESSION_SECRET=/run/secrets/hedgedoc_session_secret
+      - CMD_ALLOW_EMAIL_REGISTER=false
+      # More login methods: https://docs.hedgedoc.org/configuration/#login-methods
+      - CMD_EMAIL=false # disallow login; only guest notes
+      #- CMD_ALLOW_ANYMOUS=true
+      #- CMD_ALLOW_ANONYMOUS_EDITS=true
+      - CMD_ALLOW_FREEURL=true # allows free choseable URLs instead of random ones
+      - CMD_DEFAULT_PERMISSION=freely # sets user restrictions for new notes: freely, editable, limited, locked, protected, private
+    volumes:
+      - hedgedoc_uploads:/hedgedoc/public/uploads
+    networks:
+      - hedgedoc_net
+    secrets:
+      - hedgedoc_db_password
+      - hedgedoc_session_secret
+
+volumes:
+  hedgedoc_db_data:
+  hedgedoc_uploads:
+
+networks:
+  hedgedoc_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  hedgedoc_db_password:
+    file: hedgedoc_db_password.txt
+  hedgedoc_session_secret:
+    file: hedgedoc_session_secret.txt
