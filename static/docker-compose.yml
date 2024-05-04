@@ -1,0 +1,68 @@
+services:
+  heimdall:
+    image: ${HEIMDALL_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.heimdall.loadbalancer.server.port=80"
+      - "traefik.http.routers.heimdall.rule=Host(`${HEIMDALL_DOMAIN}`)"
+      - "traefik.http.routers.heimdall.tls=true"
+      - "traefik.http.routers.heimdall.tls.certresolver=letsencrypt"
+    volumes:
+      - heimdall_data:/config
+    networks:
+      - static_net
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+    healthcheck:
+      # Run traefik healthcheck command
+      # https://doc.traefik.io/traefik/operations/cli/#healthcheck
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://heimdall:80 || exit 1" ]
+      interval: 1m
+      timeout: 30s
+      start_period: 1m
+
+  homer:
+    image: ${HOMER_IMAGE}
+    restart: always
+    volumes:
+      - ./homer/assets/:/www/assets
+    networks:
+      - static_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.homer.loadbalancer.server.port=8080"
+      - "traefik.http.routers.homer.rule=Host(`${HOMER_DOMAIN}`)"
+      - "traefik.http.routers.homer.tls=true"
+      - "traefik.http.routers.homer.tls.certresolver=letsencrypt"
+    user: 1000:1000
+    environment:
+      - INIT_ASSETS=1
+
+  defaultpage:
+    image: ${DEFAULTPAGE_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.defaultpage.loadbalancer.server.port=80"
+      - "traefik.http.routers.defaultpage.rule=Host(`${DEFAULTPAGE_DOMAIN}`)"
+      - "traefik.http.routers.defaultpage.tls=true"
+      - "traefik.http.routers.defaultpage.tls.certresolver=letsencrypt"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    networks:
+      - static_net
+    #environment:
+    #  - NGINX_HOST=foobar.com
+    #  - NGINX_PORT=80
+
+volumes:
+  heimdall_data:
+
+networks:
+  static_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
