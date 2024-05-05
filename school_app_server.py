@@ -16,7 +16,7 @@ python_print = print
 from yaspin import yaspin
 from python_on_whales import DockerClient
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.shortcuts import input_dialog, checkboxlist_dialog
+from prompt_toolkit.shortcuts import input_dialog, checkboxlist_dialog, yes_no_dialog
 from prompt_toolkit.styles import Style
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -31,6 +31,7 @@ logger = logging.getLogger('school_app_server')
 
 APP = 'SchoolAppServer'
 VERSION = '1.0'
+INITIAL_SETUP_MARKER_FILE = '.initial_setup_complete'
 
 infrastructure_env = """UPTIMEKUMA_IMAGE=louislam/uptime-kuma:1
 UPTIMEKUMA_DOMAIN=status.{domain}
@@ -238,6 +239,7 @@ def do_initial_setup():
         logger.debug(f'Writing env vars to file: {filename}')
         with open(filename, 'w') as f:
             f.write(env_vars.format(**parameters))
+    Path(INITIAL_SETUP_MARKER_FILE).touch()
 
 
 def output_status(docker_clients):
@@ -260,6 +262,14 @@ def stop_app(docker_clients, app):
     print(f' *** Stopping app {app} *** \n')
     docker_client = docker_clients[app]
     docker_client.compose.down()
+
+
+def check_if_initial_setup_completed():
+    # check whether initial setup has been executed
+    if Path(INITIAL_SETUP_MARKER_FILE).is_file():
+        return True
+    else:
+        return False
 
 
 def main():
@@ -289,7 +299,10 @@ def main():
             return
         if command == 'exit' or command == 'quit':
             return
-        elif command == 'status':
+        if command != 'setup' and not check_if_initial_setup_completed():
+            print('Please start initial setup first by entering the command "setup"!')
+            continue
+        if command == 'status':
             output_status(docker_clients)
         elif command == 'start':
             if args:
@@ -312,9 +325,12 @@ def main():
                 for app in results_array:
                     stop_app(docker_clients, app)
         elif command == 'setup':
-            #text = input_dialog(title='Input dialog example',
-            #                    text='Please type your name:').run()
-            do_initial_setup()
+            if check_if_initial_setup_completed():
+                run_again = yes_no_dialog(title='Run initial setup again?', text='The initial setup has already been executed. Do you want to run it again?').run()
+                if run_again:
+                    do_initial_setup()
+            else:
+                do_initial_setup()
 
 
 if __name__ == '__main__':
