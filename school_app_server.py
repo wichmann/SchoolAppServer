@@ -1,17 +1,36 @@
 #! /usr/bin/env python3
 
+import re
 import sys
 import string
 import secrets
 import logging
-import getpass
 import fileinput
 import logging.handlers
 from pathlib import Path
 from argparse import ArgumentParser
 
+# save Python's print function, so it can be overwritten by the one from prompt_toolkit
+python_print = print
+
+from yaspin import yaspin
+from python_on_whales import DockerClient
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.shortcuts import input_dialog, checkboxlist_dialog
+from prompt_toolkit.styles import Style
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.validation import Validator
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit import PromptSession, prompt, HTML
+
+
 # create logger instance
 logger = logging.getLogger('school_app_server')
+
+APP = 'SchoolAppServer'
+VERSION = '1.0'
 
 infrastructure_env = """UPTIMEKUMA_IMAGE=louislam/uptime-kuma:1
 UPTIMEKUMA_DOMAIN=status.{domain}
@@ -82,7 +101,7 @@ app_var_map = {'infrastructure': infrastructure_env, 'nextcloud': nextcloud_env,
 telegram_url_files = [('infrastructure', 'watchtower_telegram_url.txt')]
 
 secret_password_files = [('infrastructure', 'traefik_dashboard_auth.txt'),
-                         ('moodle', 'moodle_db_password.txt '),
+                         ('moodle', 'moodle_db_password.txt'),
                          ('moodle', 'moodle_db_root_password.txt'),
                          ('etherpad', 'etherpad_admin_password.txt'),
                          ('etherpad', 'etherpad_db_password.txt'),
@@ -101,12 +120,11 @@ mail_address_files = [('infrastructure', 'traefik.yml')]
 def create_logger():
     global logger
     logger.setLevel(logging.DEBUG)
-    log_to_file = logging.handlers.RotatingFileHandler(
-        'SchoolAppServer.log', maxBytes=262144, backupCount=5)
+    log_to_file = logging.handlers.RotatingFileHandler('SchoolAppServer.log', maxBytes=262144, backupCount=5)
     log_to_file.setLevel(logging.DEBUG)
     logger.addHandler(log_to_file)
     log_to_screen = logging.StreamHandler(sys.stdout)
-    log_to_screen.setLevel(logging.INFO)
+    log_to_screen.setLevel(logging.WARN)
     logger.addHandler(log_to_screen)
 
 
@@ -115,8 +133,39 @@ def parse_arguments():
         description='Administrative tool for SchoolAppServer.')
     parser.add_argument('-i', '--initial-setup', action='store_true',
                         help='set up all initial configuration and secret files')
+    parser.add_argument('-v', '--version', action='version',
+                        version=f'{APP} {VERSION}')
     args = parser.parse_args()
     return args
+
+
+def prepare_cli_interface():
+    bindings = KeyBindings()
+    @bindings.add('c-x')
+    def _(event):
+        event.app.exit()
+    style = Style.from_dict({
+        # user input (default text)
+        '':       '#00ff00',
+        # prompt
+        'pound':  '#00ff00',
+        'path':   'ansicyan',
+        # toolbar
+        'bottom-toolbar': '#333333 bg:#ffcc00'
+    })
+    app_list = {k: None for k, v in app_name_map.items()}
+    completer = NestedCompleter.from_nested_dict({
+        'start': app_list,
+        'stop': app_list,
+        'help': None,
+        'setup': None,
+        'status': app_list,
+        'exit': None,
+    })
+    toolbar_text = HTML('<b><style bg="ansired">Commands:</style></b>  -  start [app]  -  stop [app]  -  status [app]  -  help  -  exit  -  ctrl+c to quit')
+    session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
+                            key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
+    return session
 
 
 def create_password(length=25):
@@ -132,16 +181,23 @@ def create_password(length=25):
 
 
 def do_initial_setup():
+    print(' *** Initializing all configuration and secret files *** ')
     # input all information from user
-    mail_address = input('Please enter your mail address: ')
-    domain_name = input('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ')
+    validator = Validator.from_callable(
+        # do a very simple check for validity (https://stackoverflow.com/a/8022584)
+        lambda text: re.match(r'[^@]+@[^@]+\.[^@]+', text),
+        error_message="Not a valid e-mail address!",
+        move_cursor_to_end=True,
+    )
+    mail_address = prompt('Please enter your mail address: ', validator=validator)
+    domain_name = prompt('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ')
     # handle telegram URL files
     for filename in telegram_url_files:
         filename = Path(*filename)
         with open(filename, 'w') as f:
-            bot_id = input('Please enter the Telegram bot id: ')
+            bot_id = prompt('Please enter the Telegram bot id: ')
             bot_id = '[bot_id]' if not bot_id else bot_id
-            chat_id = input('Please enter the Telegram chat id: ')
+            chat_id = prompt('Please enter the Telegram chat id: ')
             chat_id = '[chat_id]' if not chat_id else chat_id
             url = f'telegram://{bot_id}@telegram/?channels={chat_id}'
             f.write(url)
@@ -153,7 +209,8 @@ def do_initial_setup():
             f.write(create_password())
             logger.debug(f'Writing password to secrets file: {filename}')
     # handle SMTP password files
-    smtp_password = getpass.getpass('Please enter the SMTP password: ')
+    smtp_password = prompt(
+        'Please enter the SMTP password: ', is_password=True)
     for filename in smtp_password_files:
         filename = Path(*filename)
         with open(filename, 'w') as f:
@@ -165,7 +222,7 @@ def do_initial_setup():
         # replacing string in file (https://stackoverflow.com/a/20593644)
         with fileinput.FileInput(filename, inplace=True, backup='.bak') as file:
             for line in file:
-                print(line.replace('mail@example.com', mail_address), end='')
+                python_print(line.replace('mail@example.com', mail_address), end='')
     # handle environment variable files
     for app, env_vars in app_var_map.items():
         parameters = {'domain': domain_name}
@@ -176,18 +233,90 @@ def do_initial_setup():
         parameter_names = set(parameter_names)
         parameter_names.remove('domain')
         for p in parameter_names:
-            parameters[p] = input(f'Please enter parameter "{p}": ')
+            parameters[p] = prompt(f'Please enter parameter "{p}": ')
         filename = Path(app, '.env')
         logger.debug(f'Writing env vars to file: {filename}')
         with open(filename, 'w') as f:
             f.write(env_vars.format(**parameters))
 
 
-if __name__ == '__main__':
-    create_logger()
+def output_status(docker_clients):
+    print(' *** Stacks and Container *** \n')
+    for app, docker in docker_clients.items():
+        container = docker.compose.ps(all=True)
+        mark = '✔️' if container else '❌'
+        print(f' {mark} {app_name_map[app]} {"⣿" * len(container)}')
+        for c in container:
+            print(f'    - {c.name}')
+
+
+def start_app(docker_clients, app):
+    print(f' *** Starting app {app} *** \n')
+    docker_client = docker_clients[app]
+    docker_client.compose.up(services=None, build=False, detach=True, pull='missing')
+
+
+def stop_app(docker_clients, app):
+    print(f' *** Stopping app {app} *** \n')
+    docker_client = docker_clients[app]
+    docker_client.compose.down()
+
+
+def main():
+    # check for commandline arguments
     args = parse_arguments()
     if args.initial_setup:
         logger.info('Initializing all configuration and secret files...')
         do_initial_setup()
-    else:
-        print('What would you like to do?')
+    # begin commandline session
+    session = prepare_cli_interface()
+    prompt_message = [('class:pound', '\n ➭ ')]
+    # prepare instances of Docker client (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
+    docker_clients = {}
+    for app, env_vars in app_var_map.items():
+        docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
+        docker_clients[app] = docker
+    print(f'{APP} {VERSION}')
+    while True:
+        try:
+            user_input = session.prompt(prompt_message)
+            if not user_input:
+                continue
+            else:
+                user_input = user_input.split()
+            command, args = user_input[0], user_input[1:]
+        except KeyboardInterrupt:
+            return
+        if command == 'exit' or command == 'quit':
+            return
+        elif command == 'status':
+            output_status(docker_clients)
+        elif command == 'start':
+            if args:
+                start_app(docker_clients, args[0])
+            else:
+                results_array = checkboxlist_dialog(
+                    title="Start apps", text="Which apps should be started?",
+                    values=[(k, v) for k, v in app_name_map.items()]
+                ).run()
+                for app in results_array:
+                    start_app(docker_clients, app)
+        elif command == 'stop':
+            if args:
+                stop_app(docker_clients, args[0])
+            else:
+                results_array = checkboxlist_dialog(
+                    title="Stop apps", text="Which apps should be stopped?",
+                    values=[(k, v) for k, v in app_name_map.items()]
+                ).run()
+                for app in results_array:
+                    stop_app(docker_clients, app)
+        elif command == 'setup':
+            #text = input_dialog(title='Input dialog example',
+            #                    text='Please type your name:').run()
+            do_initial_setup()
+
+
+if __name__ == '__main__':
+    create_logger()
+    main()
