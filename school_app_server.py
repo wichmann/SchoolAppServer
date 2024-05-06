@@ -184,46 +184,19 @@ def create_password(length=25):
 def do_initial_setup():
     print(' *** Initializing all configuration and secret files *** ')
     # input all information from user
-    validator = Validator.from_callable(
+    mail_validator = Validator.from_callable(
         # do a very simple check for validity (https://stackoverflow.com/a/8022584)
         lambda text: re.match(r'[^@]+@[^@]+\.[^@]+', text),
         error_message="Not a valid e-mail address!",
         move_cursor_to_end=True,
     )
-    mail_address = prompt('Please enter your mail address: ', validator=validator)
-    domain_name = prompt('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ')
-    # handle telegram URL files
-    for filename in telegram_url_files:
-        filename = Path(*filename)
-        with open(filename, 'w') as f:
-            bot_id = prompt('Please enter the Telegram bot id: ')
-            bot_id = '[bot_id]' if not bot_id else bot_id
-            chat_id = prompt('Please enter the Telegram chat id: ')
-            chat_id = '[chat_id]' if not chat_id else chat_id
-            url = f'telegram://{bot_id}@telegram/?channels={chat_id}'
-            f.write(url)
-            logger.debug(f'Writing Telegram IDs to file: {filename}')
-    # handle password files
-    for filename in secret_password_files:
-        filename = Path(*filename)
-        with open(filename, 'w') as f:
-            f.write(create_password())
-            logger.debug(f'Writing password to secrets file: {filename}')
-    # handle SMTP password files
-    smtp_password = prompt(
-        'Please enter the SMTP password: ', is_password=True)
-    for filename in smtp_password_files:
-        filename = Path(*filename)
-        with open(filename, 'w') as f:
-            f.write(smtp_password)
-            logger.debug(f'Writing SMTP password to file: {filename}')
-    # replace mail address in files
-    for filename in mail_address_files:
-        filename = Path(*filename)
-        # replacing string in file (https://stackoverflow.com/a/20593644)
-        with fileinput.FileInput(filename, inplace=True, backup='.bak') as file:
-            for line in file:
-                python_print(line.replace('mail@example.com', mail_address), end='')
+    domain_validator = Validator.from_callable(
+        lambda text: re.match(r'\w+\.\w+', text),
+        error_message="Not a valid domain name!",
+        move_cursor_to_end=True,
+    )
+    mail_address = prompt('Please enter your mail address: ', validator=mail_validator)
+    domain_name = prompt('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ', validator=domain_validator)
     # handle environment variable files
     for app, env_vars in app_var_map.items():
         parameters = {'domain': domain_name}
