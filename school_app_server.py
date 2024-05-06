@@ -306,7 +306,13 @@ def main():
             output_status(docker_clients)
         elif command == 'start':
             if args:
-                start_app(docker_clients, args[0])
+                if args[0] in app_name_map.keys():
+                    start_app(docker_clients, args[0])
+                elif args[0] == 'all':
+                    for app in app_name_map.keys():
+                        start_app(docker_clients, app)
+                else:
+                    print('Given app not available.')
             else:
                 results_array = checkboxlist_dialog(
                     title="Start apps", text="Which apps should be started?",
@@ -316,7 +322,13 @@ def main():
                     start_app(docker_clients, app)
         elif command == 'stop':
             if args:
-                stop_app(docker_clients, args[0])
+                if args[0] in app_name_map.keys():
+                    stop_app(docker_clients, args[0])
+                elif args[0] == 'all':
+                    for app in app_name_map.keys():
+                        stop_app(docker_clients, app)
+                else:
+                    print('Given app not available.')
             else:
                 results_array = checkboxlist_dialog(
                     title="Stop apps", text="Which apps should be stopped?",
