@@ -13,6 +13,7 @@ from argparse import ArgumentParser
 # save Python's print function, so it can be overwritten by the one from prompt_toolkit
 python_print = print
 
+import yaml
 from yaspin import yaspin
 from python_on_whales import DockerClient
 from prompt_toolkit.key_binding import KeyBindings
@@ -99,29 +100,12 @@ app_var_map = {'infrastructure': infrastructure_env, 'nextcloud': nextcloud_env,
                'kanboard': kanboard_env, 'tools': tools_env, 'moodle': moodle_env,
                'static': static_env, 'etherpad': etherpad_env, 'hedgedoc': hedgedoc_env}
 
-telegram_url_files = [('infrastructure', 'watchtower_telegram_url.txt')]
-
-secret_password_files = [('infrastructure', 'traefik_dashboard_auth.txt'),
-                         ('moodle', 'moodle_db_password.txt'),
-                         ('moodle', 'moodle_db_root_password.txt'),
-                         ('etherpad', 'etherpad_admin_password.txt'),
-                         ('etherpad', 'etherpad_db_password.txt'),
-                         ('hedgedoc', 'hedgedoc_db_password.txt'),
-                         ('hedgedoc', 'hedgedoc_session_secret.txt'),
-                         ('nextcloud', 'nextcloud_db_password.txt'),
-                         ('nextcloud', 'nextcloud_db_root_password.txt'),
-                         ('nextcloud', 'nextcloud_redis_password.txt')]
-
-smtp_password_files = [('moodle', 'moodle_smtp_password.txt'),
-                       ('kanboard', 'kanboard_smtp_password.txt')]
-
-mail_address_files = [('infrastructure', 'traefik.yml')]
-
 
 def create_logger():
     global logger
     logger.setLevel(logging.DEBUG)
-    log_to_file = logging.handlers.RotatingFileHandler('SchoolAppServer.log', maxBytes=262144, backupCount=5)
+    log_to_file = logging.handlers.RotatingFileHandler(
+        'SchoolAppServer.log', maxBytes=262144, backupCount=5)
     log_to_file.setLevel(logging.DEBUG)
     logger.addHandler(log_to_file)
     log_to_screen = logging.StreamHandler(sys.stdout)
@@ -130,8 +114,7 @@ def create_logger():
 
 
 def parse_arguments():
-    parser = ArgumentParser(
-        description='Administrative tool for SchoolAppServer.')
+    parser = ArgumentParser(description='Administrative tool for SchoolAppServer.')
     parser.add_argument('-i', '--initial-setup', action='store_true',
                         help='set up all initial configuration and secret files')
     parser.add_argument('-v', '--version', action='version',
@@ -142,6 +125,7 @@ def parse_arguments():
 
 def prepare_cli_interface():
     bindings = KeyBindings()
+
     @bindings.add('c-x')
     def _(event):
         event.app.exit()
@@ -181,6 +165,60 @@ def create_password(length=25):
     return password
 
 
+def find_all_secrets():
+    all_secrets = []
+    for path in Path('.').glob('*/docker-compose.yml'):
+        data = yaml.safe_load(path.open())
+        if 'secrets' in data:
+            all_secrets.extend(
+                [(str(path.parent), data['secrets'][s]['file']) for s in data['secrets']])
+    return all_secrets
+
+
+def create_secret_files():
+    smtp_password = prompt('Please enter the SMTP password: ', is_password=True)
+    for app, filename in find_all_secrets():
+        filepath = Path(app) / filename
+        if 'smtp_password' in filename:
+            # handle SMTP password files
+            with open(filepath, 'w') as f:
+                f.write(smtp_password)
+                logger.debug(f'Writing SMTP password to file: {filename}')
+        elif 'telegram' in filename:
+            # handle telegram URL files
+            with open(filepath, 'w') as f:
+                bot_id = prompt('Please enter the Telegram bot id: ')
+                bot_id = '[bot_id]' if not bot_id else bot_id
+                chat_id = prompt('Please enter the Telegram chat id: ')
+                chat_id = '[chat_id]' if not chat_id else chat_id
+                url = f'telegram://{bot_id}@telegram/?channels={chat_id}'
+                f.write(url)
+                logger.debug(f'Writing Telegram IDs to file: {filename}')
+        else:
+            # handle all other files by just filling them with a long password
+            with open(filepath, 'w') as f:
+                f.write(create_password())
+                logger.debug(f'Writing password to secrets file: {filename}')
+
+
+def replace_string_in_file(filename, old_string, new_string):
+    # replacing string in file (https://stackoverflow.com/a/20593644)
+    with fileinput.FileInput(Path(filename), inplace=True, backup='.bak') as file:
+        for line in file:
+            python_print(line.replace(old_string, new_string), end='')
+
+
+def replace_mail_address_in_files(mail_address):
+    # replace mail address in files
+    placeholder = 'mail@example.com'
+    for path in Path('.').glob('*/*.yml'):
+        if path.is_file():
+            with open(path, 'r') as file:
+                if placeholder in file.read():
+                    log.debug(f'Found mail address to be replaced: {path}')
+                    replace_string_in_file(path, placeholder, mail_address)
+
+
 def do_initial_setup():
     print(' *** Initializing all configuration and secret files *** ')
     # input all information from user
@@ -197,6 +235,8 @@ def do_initial_setup():
     )
     mail_address = prompt('Please enter your mail address: ', validator=mail_validator)
     domain_name = prompt('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ', validator=domain_validator)
+    create_secret_files()
+    replace_mail_address_in_files(mail_address)
     # handle environment variable files
     for app, env_vars in app_var_map.items():
         parameters = {'domain': domain_name}
