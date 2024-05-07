@@ -57,7 +57,7 @@ the commands 'start' and 'stop'.
 You should start the app 'infrastructure' first, before starting any of the
 other apps:
 
-     ➭ start infrastrukture
+     ➭ start infrastructure
 
 ## Demo
 
