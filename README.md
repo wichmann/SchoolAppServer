@@ -1,3 +1,5 @@
+[![Pylint](https://github.com/wichmann/SchoolAppServer/actions/workflows/pylint.yml/badge.svg)](https://github.com/wichmann/SchoolAppServer/actions/workflows/pylint.yml)
+
 # SchoolAppServer
 
 Configures and prepares Docker Compose scripts to setup a schools app server.
