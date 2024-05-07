@@ -107,14 +107,41 @@ HEDGEDOC_DOMAIN=md.{domain}
 HEDGEDOC_DB_IMAGE=postgres:16-alpine
 """
 
-app_name_map = {'infrastructure': 'Infrastructure Services', 'nextcloud': 'Nextcloud',
-                'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle',
-                'static': 'Static apps', 'etherpad': 'Etherpad',
-                'hedgedoc': 'Hedgedoc Markdown Editor'}
+DRAWIO_ENV = """DRAWIO_IMAGE=jgraph/drawio:latest
+DRAWIO_DOMAIN=draw.{domain}
+"""
 
-app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV,
-               'kanboard': KANBOARD_ENV, 'tools': TOOLS_ENV, 'moodle': MOODLE_ENV,
-               'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV, 'hedgedoc': HEDGEDOC_ENV}
+ONLYOFFICE_ENV = """ONLYOFFICE_IMAGE=onlyoffice/documentserver:latest
+ONLYOFFICE_DOMAIN=onlyoffice.{domain}
+"""
+
+JENKINS_ENV = """JENKINS_IMAGE=jenkins/jenkins:lts-jdk17
+JENKINS_DOMAIN=jenkins.{domain}
+"""
+
+GITEA_ENV = """GITEA_DB_IMAGE=postgres:16
+GITEA_IMAGE=gitea/gitea:latest
+GITEA_DOMAIN=git.{domain}
+GITEA_SMTP_ADDR={gitea_smtp_addr}
+GITEA_SMTP_PORT=465
+GITEA_SMTP_USER={gitea_smtp_user}
+"""
+
+WEKAN_ENV = """WEKAN_DB_IMAGE=mongo:6
+WEKAN_IMAGE=wekanteam/wekan:latest
+WEKAN_DOMAIN=wekan.{domain}
+"""
+
+app_name_map = {'infrastructure': 'Infrastructure Services', 'nextcloud': 'Nextcloud',
+                'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle', 'static': 'Static apps',
+                'etherpad': 'Etherpad', 'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io',
+                'onlyoffice': 'OnlyOffice', 'jenkins': 'Jenkins CI', 'gitea': 'Gitea',
+                'wekan': 'WeKan - Open-Source Kanban'}
+
+app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
+               'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
+               'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
+               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV}
 
 
 def create_logger():
