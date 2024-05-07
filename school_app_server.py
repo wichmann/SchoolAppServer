@@ -66,8 +66,8 @@ NEXTCLOUD_ENV = """NEXTCLOUD_IMAGE=nextcloud:27.1-apache
 NEXTCLOUD_DOMAIN=nextcloud.{domain}
 NEXTCLOUD_DB_IMAGE=mariadb:10.6
 NEXTCLOUD_REDIS_IMAGE=redis:latest
-NEXTCLOUD_SMTP_ADDR={kanboard_smtp_addr}
-NEXTCLOUD_SMTP_USER={kanboard_smtp_user}
+NEXTCLOUD_SMTP_ADDR={nextcloud_smtp_addr}
+NEXTCLOUD_SMTP_USER={nextcloud_smtp_user}
 NEXTCLOUD_SMTP_PORT=465
 """
 
