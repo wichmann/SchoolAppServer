@@ -15,6 +15,8 @@ It provides Docker stacks containing the following services:
 * Homer
 * Heimdall
 
+## Demo
+
 [![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
 
 ## Installation
