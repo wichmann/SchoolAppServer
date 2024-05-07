@@ -32,6 +32,7 @@ python_print = print
 
 import yaml
 from python_on_whales import DockerClient
+from python_on_whales.exceptions import DockerException
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
 from prompt_toolkit.styles import Style
@@ -299,8 +300,11 @@ def output_status(docker_clients):
 def start_app(docker_clients, app):
     """Start all containers of a specific Docker stack."""
     print(f' *** Starting app {app} *** \n')
-    docker_client = docker_clients[app]
-    docker_client.compose.up(services=None, build=False, detach=True, pull='missing')
+    try:
+        docker_client = docker_clients[app]
+        docker_client.compose.up(services=None, build=False, detach=True, pull='missing')
+    except DockerException:
+        print('Could not start app. Maybe you have not started the app "infrastructure" first?')
 
 
 def stop_app(docker_clients, app):
