@@ -163,7 +163,9 @@ def prepare_cli_interface():
         'status': app_list,
         'exit': None,
     })
-    toolbar_text = HTML('<b><style bg="ansired">Commands:</style></b>  -  start [app]  -  stop [app]  -  status [app]  -  help  -  exit  -  ctrl+c to quit')
+    toolbar_text = '<b><style bg="ansired">Commands:</style></b>  -  '
+    toolbar_text += 'start [app]  -  stop [app]  -  status [app]  -  help  -  exit  -  ctrl+c to quit'
+    toolbar_text = HTML(toolbar_text)
     session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
                             key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
     return session
@@ -261,7 +263,8 @@ def do_initial_setup():
         move_cursor_to_end=True,
     )
     mail_address = prompt('Please enter your mail address: ', validator=mail_validator)
-    domain_name = prompt('Please enter your domain name (third-level domain will be added automatically, e.g. nicedomain.com): ', validator=domain_validator)
+    domain_prompt = 'Please enter your domain name (third-level domain will be added, e.g. nicedomain.com): '
+    domain_name = prompt(domain_prompt, validator=domain_validator)
     create_secret_files()
     replace_mail_address_in_files(mail_address)
     # handle environment variable files
@@ -324,7 +327,8 @@ def main():
     # begin commandline session
     session = prepare_cli_interface()
     prompt_message = [('class:pound', '\n ➭ ')]
-    # prepare instances of Docker client (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
+    # prepare instances of Docker client
+    # (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
     docker_clients = {}
     for app, _ in app_var_map.items():
         docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
@@ -380,7 +384,8 @@ def main():
                     stop_app(docker_clients, app)
         elif command == 'setup':
             if check_if_initial_setup_completed():
-                run_again = yes_no_dialog(title='Run initial setup again?', text='The initial setup has already been executed. Do you want to run it again?').run()
+                text = 'The initial setup has already been executed. Do you want to run it again?'
+                run_again = yes_no_dialog(title='Run initial setup again?', text=text).run()
                 if run_again:
                     do_initial_setup()
             else:

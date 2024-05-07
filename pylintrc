@@ -1,0 +1,22 @@
+
+[MESSAGES CONTROL]
+
+disable=redefined-builtin,import-error,wrong-import-position
+
+
+[REPORTS]
+
+output-format=colorized
+
+
+[FORMAT]
+
+max-line-length=120
+
+
+[SIMILARITIES]
+
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=no
