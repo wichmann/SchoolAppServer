@@ -15,7 +15,9 @@ It provides Docker stacks containing the following services:
 * Homer
 * Heimdall
 
-## Usage
+[![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
+
+## Installation
 
 Before using the tool you have to install all necessary packages:
 
@@ -29,6 +31,8 @@ To prepare the Python environment start pipenv in the cloned directory to
 install all Python libraries:
 
     pipenv install
+
+## Usage
 
 After cloning the repository you should generate all configuration and
 passwords files by starting the program and entering the command 'setup':
