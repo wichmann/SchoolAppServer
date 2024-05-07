@@ -15,6 +15,8 @@ It provides Docker stacks containing the following services:
 * Homer
 * Heimdall
 
+![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
+
 ## Demo
 
 [![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
