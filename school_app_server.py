@@ -66,6 +66,9 @@ NEXTCLOUD_ENV = """NEXTCLOUD_IMAGE=nextcloud:27.1-apache
 NEXTCLOUD_DOMAIN=nextcloud.{domain}
 NEXTCLOUD_DB_IMAGE=mariadb:10.6
 NEXTCLOUD_REDIS_IMAGE=redis:latest
+NEXTCLOUD_SMTP_ADDR={kanboard_smtp_addr}
+NEXTCLOUD_SMTP_USER={kanboard_smtp_user}
+NEXTCLOUD_SMTP_PORT=465
 """
 
 KANBOARD_ENV = """KANBOARD_IMAGE=kanboard/kanboard:v1.2.36
@@ -132,6 +135,10 @@ GITEA_SMTP_USER={gitea_smtp_user}
 WEKAN_ENV = """WEKAN_DB_IMAGE=mongo:6
 WEKAN_IMAGE=wekanteam/wekan:latest
 WEKAN_DOMAIN=wekan.{domain}
+WEKAN_SMTP_USER={wekan_smtp_user}
+WEKAN_SMTP_ADDR={wekan_smtp_addr}
+WEKAN_SMTP_PASSWORD={wekan_smtp_password}
+WEKAN_SMTP_PORT=465
 """
 
 app_name_map = {'infrastructure': 'Infrastructure Services', 'nextcloud': 'Nextcloud',

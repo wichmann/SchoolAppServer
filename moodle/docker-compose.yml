@@ -48,7 +48,7 @@ services:
       #- MOODLE_SSLPROXY=true
       - MOODLE_LANG=de
       - MOODLE_SMTP_HOST=${MOODLE_SMTP_ADDR}
-      - MOODLE_SMTP_PORT=465
+      - MOODLE_SMTP_PORT=${MOODLE_SMTP_PORT}
       - MOODLE_SMTP_USER=${MOODLE_SMTP_USER}
       - MOODLE_SMTP_PASSWORD=/run/secrets/moodle_smtp_password
       - MOODLE_SMTP_PROTOCOL=ssl

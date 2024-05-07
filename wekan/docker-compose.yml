@@ -27,18 +27,23 @@ services:
       - WRITABLE_PATH=/data
       - MONGO_URL=mongodb://wekan-db:27017/wekan
       - ROOT_URL=https://${WEKAN_DOMAIN}
+      # TODO: Find a way to add password to URL from /run/secrets/wekan_smtp_password
+      - MAIL_URL=smtps://${WEKAN_SMTP_USER}:${WEKAN_SMTP_PASSWORD}@${WEKAN_SMTP_ADDR}:${WEKAN_SMTP_PORT}/
+        # ?ignoreTLS=true&tls={rejectUnauthorized:false}
+      - MAIL_FROM=Wekan Notifications <${WEKAN_SMTP_USER}>
       - WITH_API=true
       - RICHER_CARD_COMMENT_EDITOR=false
       - CARD_OPENED_WEBHOOK_ENABLED=false
       - BIGEVENTS_PATTERN=NONE
       - BROWSER_POLICY_ENABLED=true
       - TRUSTED_URL=https://${WEKAN_DOMAIN}
+    secrets:
+      - wekan_smtp_password
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - wekan_files:/data:rw
     networks:
       - wekan_net
-
 
 volumes:
   wekan_files:
@@ -50,3 +55,7 @@ networks:
     # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
     name: infrastructure_default
     external: true
+
+secrets:
+  wekan_smtp_password:
+    file: wekan_smtp_password.txt

@@ -41,7 +41,7 @@ services:
       - GITEA__mailer__ENABLED=true
       - GITEA__mailer__PROTOCOL=smtp #smtp+starttls
       - GITEA__mailer__SMTP_ADDR=${GITEA_SMTP_ADDR}
-      - GITEA__mailer__SMTP_PORT=465
+      - GITEA__mailer__SMTP_PORT=${GITEA_SMTP_PORT}
       - GITEA__mailer__USER=${GITEA_SMTP_USER}
       - GITEA__mailer__PASSWD=/run/secrets/gitea_smtp_password
       - GITEA__mailer__FROM=${GITEA_SMTP_USER}
