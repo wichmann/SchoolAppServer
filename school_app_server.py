@@ -147,25 +147,22 @@ def prepare_cli_interface():
     def _(event):
         event.app.exit()
     style = Style.from_dict({
-        # user input (default text)
         '':       '#00ff00',
-        # prompt
         'pound':  '#00ff00',
         'path':   'ansicyan',
-        # toolbar
         'bottom-toolbar': '#333333 bg:#ffcc00'
     })
-    app_list = {k: None for k, v in app_name_map.items()}
+    app_list = {k: None for k, v in app_name_map.items()}.update({'all': None})
     completer = NestedCompleter.from_nested_dict({
         'start': app_list,
         'stop': app_list,
         'help': None,
         'setup': None,
-        'status': app_list,
+        'status': None,
         'exit': None,
     })
     toolbar_text = '<b><style bg="ansired">Commands:</style></b>  -  '
-    toolbar_text += 'start [app]  -  stop [app]  -  status [app]  -  help  -  exit  -  ctrl+c to quit'
+    toolbar_text += 'start [app]  -  stop [app]  -  status  -  setup  -  help  -  exit  -  ctrl+c to quit'
     toolbar_text = HTML(toolbar_text)
     session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
                             key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
@@ -362,7 +359,7 @@ def main():
                     for app in app_name_map:
                         start_app(docker_clients, app)
                 else:
-                    print('Given app not available.')
+                    print(HTML('<red>Given app not available!</red>'))
             else:
                 results_array = checkboxlist_dialog(
                     title="Start apps", text="Which apps should be started?",
@@ -378,7 +375,7 @@ def main():
                     for app in app_name_map:
                         stop_app(docker_clients, app)
                 else:
-                    print('Given app not available.')
+                    print(HTML('<red>Given app not available!</red>'))
             else:
                 results_array = checkboxlist_dialog(
                     title="Stop apps", text="Which apps should be stopped?",
@@ -389,11 +386,22 @@ def main():
         elif command == 'setup':
             if check_if_initial_setup_completed():
                 text = 'The initial setup has already been executed. Do you want to run it again?'
-                run_again = yes_no_dialog(title='Run initial setup again?', text=text).run()
+                run_again = yes_no_dialog(
+                    title='Run initial setup again?', text=text).run()
                 if run_again:
                     do_initial_setup()
             else:
                 do_initial_setup()
+        elif command == 'help':
+            print(HTML(f'<skyblue>{APP}</skyblue> <violet>{VERSION}</violet>'))
+            print(HTML('<orange>start</orange>  - Start one or all Docker Compose stack.'))
+            print(HTML('<orange>stop</orange>   - Stop one or all Docker Compose stack.'))
+            print(HTML('<orange>status</orange> - Show status of all Docker Compose stacks.'))
+            print(HTML('<orange>setup</orange>  - Execute initial set up of configuration files.'))
+            print(HTML('<orange>help</orange>   - Show this list of commands.'))
+            print(HTML('<orange>exit</orange>   - Exit the programm.'))
+        else:
+            print(HTML('<red>Invalid command!</red>'))
 
 
 if __name__ == '__main__':
