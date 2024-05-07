@@ -17,10 +17,6 @@ It provides Docker stacks containing the following services:
 
 ![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
 
-## Demo
-
-[![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
-
 ## Installation
 
 Before using the tool you have to install all necessary packages:
@@ -45,3 +41,7 @@ passwords files by starting the program and entering the command 'setup':
 
 If all stack are configured properly you can start and stop them by executing
 the commands 'start' and 'stop'.
+
+## Demo
+
+[![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
