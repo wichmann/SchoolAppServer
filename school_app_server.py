@@ -18,6 +18,7 @@ It provides Docker stacks containing the following services:
 """
 
 import re
+import os
 import sys
 import string
 import secrets
@@ -31,16 +32,17 @@ from argparse import ArgumentParser
 python_print = print
 
 import yaml
-from python_on_whales import DockerClient
-from python_on_whales.exceptions import DockerException
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
-from prompt_toolkit.styles import Style
-from prompt_toolkit.completion import NestedCompleter
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.validation import Validator
-from prompt_toolkit import print_formatted_text as print
+import bcrypt
 from prompt_toolkit import PromptSession, prompt, HTML
+from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit.validation import Validator
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.styles import Style
+from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
+from prompt_toolkit.key_binding import KeyBindings
+from python_on_whales.exceptions import DockerException
+from python_on_whales import DockerClient
 
 
 # create logger instance
@@ -170,6 +172,7 @@ def parse_arguments():
 def prepare_cli_interface():
     """Set up style, key bindings and autocompletion for command line interface."""
     bindings = KeyBindings()
+
     @bindings.add('c-x')
     def _(event):
         event.app.exit()
@@ -225,6 +228,20 @@ def find_all_secrets():
     return all_secrets
 
 
+def generate_htpasswd_bcrypt(username, password):
+    """
+    Generates a htpasswd entry by calculating the bcrypt hash of a given
+    password and append it to the username.
+
+    Sources:
+     - https://www.toor.su/posts/2019/06/htpasswd-with-bcrypt/
+     - https://gist.github.com/zobayer1/d86a59e45ae86198a9efc6f3d8682b49
+    """
+    # generating on command line: printf "admin:$(openssl passwd -apr1 {chosen_password})\n" > traefik_dashboard_auth
+    bcrypted = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+    return f'{username}:{bcrypted}'
+
+
 def create_secret_files():
     """
     Create all files with secrets referenced in the Docker Compose files and
@@ -233,7 +250,13 @@ def create_secret_files():
     smtp_password = prompt('Please enter the SMTP password: ', is_password=True)
     for app, filename in find_all_secrets():
         filepath = Path(app) / filename
-        if 'smtp_password' in filename:
+        if 'dashboard_auth' in filename:
+            chosen_password = create_password()
+            print(f'Generated password for Traefik Dashboard (user "admin"): {chosen_password}')
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(generate_htpasswd_bcrypt('admin', chosen_password))
+                logger.debug('Writing HTTP auth string to file: %s', filename)
+        elif 'smtp_password' in filename:
             # handle SMTP password files
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(smtp_password)
@@ -308,6 +331,8 @@ def do_initial_setup():
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(env_vars.format(**parameters))
+    # set correct file permissions for acme.json
+    os.chmod(Path('infrastructure') / 'acme.json', 0o600)
     Path(INITIAL_SETUP_MARKER_FILE).touch()
 
 

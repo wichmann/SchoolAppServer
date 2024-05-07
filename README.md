@@ -21,7 +21,7 @@ It provides Docker stacks containing the following services:
 
 Before using the tool you have to install all necessary packages:
 
-    sudo apt install docker.io git pipenv
+    sudo apt install docker.io docker-compose-v2 git pipenv
 
 Clone this repository:
 
