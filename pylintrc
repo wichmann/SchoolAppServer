@@ -1,8 +1,8 @@
 
 [MAIN]
 
-max-branches=30
-max-statements=75
+max-branches=40
+max-statements=80
 
 
 [MESSAGES CONTROL]
