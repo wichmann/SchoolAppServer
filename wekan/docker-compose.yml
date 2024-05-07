@@ -1,0 +1,52 @@
+services:
+  wekan-db:
+    image: ${WEKAN_DB_IMAGE}
+    restart: unless-stopped
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - wekan_db:/data/db
+      - wekan_db_dump:/dump
+    networks:
+      - wekan_net
+
+  wekan:
+    # WeKan - Open-Source Kanban
+    # Docker Compose file with comments: https://github.com/wekan/wekan/blob/main/docker-compose.yml
+    image: ${WEKAN_IMAGE}
+    depends_on:
+      - wekan-db
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.wekan.loadbalancer.server.port=8080"
+      - "traefik.http.routers.wekan.rule=Host(`${WEKAN_DOMAIN}`)"
+      - "traefik.http.routers.wekan.tls=true"
+      - "traefik.http.routers.wekan.tls.certresolver=letsencrypt"
+    environment:
+      - WRITABLE_PATH=/data
+      - MONGO_URL=mongodb://wekan-db:27017/wekan
+      - ROOT_URL=https://${WEKAN_DOMAIN}
+      - WITH_API=true
+      - RICHER_CARD_COMMENT_EDITOR=false
+      - CARD_OPENED_WEBHOOK_ENABLED=false
+      - BIGEVENTS_PATTERN=NONE
+      - BROWSER_POLICY_ENABLED=true
+      - TRUSTED_URL=https://${WEKAN_DOMAIN}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - wekan_files:/data:rw
+    networks:
+      - wekan_net
+
+
+volumes:
+  wekan_files:
+  wekan_db:
+  wekan_db_dump:
+
+networks:
+  wekan_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
