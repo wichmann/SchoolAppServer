@@ -478,12 +478,13 @@ def main():
                 do_initial_setup()
         elif command == 'help':
             print(HTML(f'<skyblue>{APP}</skyblue> <violet>{VERSION}</violet>'))
-            print(HTML('<orange>start</orange>  - Start one or all Docker Compose stack.'))
-            print(HTML('<orange>stop</orange>   - Stop one or all Docker Compose stack.'))
-            print(HTML('<orange>status</orange> - Show status of all Docker Compose stacks.'))
-            print(HTML('<orange>setup</orange>  - Execute initial set up of configuration files.'))
-            print(HTML('<orange>help</orange>   - Show this list of commands.'))
-            print(HTML('<orange>exit</orange>   - Exit the programm.'))
+            print(HTML('<orange>start [app]</orange> - Start one or all Docker Compose stack.'))
+            print(HTML('<orange>stop [app]</orange>  - Stop one or all Docker Compose stack.'))
+            print(HTML('<orange>pull [app]</orange>  - Stop one or all Docker Compose stack.'))
+            print(HTML('<orange>status</orange>      - Show status of all Docker Compose stacks.'))
+            print(HTML('<orange>setup</orange>       - Execute initial set up of configuration files.'))
+            print(HTML('<orange>help</orange>        - Show this list of commands.'))
+            print(HTML('<orange>exit</orange>        - Exit the programm.'))
         else:
             print(HTML('<red>Invalid command!</red>'))
 
