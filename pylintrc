@@ -1,4 +1,10 @@
 
+[MAIN]
+
+max-branches=30
+max-statements=75
+
+
 [MESSAGES CONTROL]
 
 disable=redefined-builtin,import-error,wrong-import-position
