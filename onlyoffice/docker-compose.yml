@@ -1,0 +1,40 @@
+services:
+  onlyoffice:
+    image: ${ONLYOFFICE_IMAGE}
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
+      - "traefik.http.routers.onlyoffice.rule=Host(`${ONLYOFFICE_DOMAIN}`)"
+      - "traefik.http.routers.onlyoffice.tls=true"
+      - "traefik.http.routers.onlyoffice.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.onlyoffice.middlewares=onlyoffice-headers"
+      - "traefik.http.middlewares.onlyoffice-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.onlyoffice-headers.headers.accessControlAllowOriginList=*"
+    volumes:
+      - onlyoffice_logs:/var/log/onlyoffice
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_lib:/var/lib/onlyoffice
+      - onlyoffice_db:/var/lib/postgresql
+    networks:
+      - onlyoffice_net
+    environment:
+     - JWT_SECRET=/run/secrets/onlyoffice_jwt_secret
+    secrets:
+     - onlyoffice_jwt_secret
+
+volumes:
+  onlyoffice_logs:
+  onlyoffice_data:
+  onlyoffice_lib:
+  onlyoffice_db:
+
+networks:
+  onlyoffice_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  onlyoffice_jwt_secret:
+    file: onlyoffice_jwt_secret.txt
