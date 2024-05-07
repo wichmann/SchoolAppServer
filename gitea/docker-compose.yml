@@ -1,0 +1,77 @@
+services:
+  gitea-db:
+    image: ${GITEA_DB_IMAGE}
+    restart: always
+    environment:
+      - POSTGRES_DB=gitea
+      - POSTGRES_PASSWORD=/run/secrets/gitea_db_password
+      - POSTGRES_USER=gitea
+    volumes:
+      - gitea_db_data:/var/lib/postgresql/data
+    networks:
+      - gitea_net
+    secrets:
+      - gitea_db_password
+
+  gitea:
+    # Hosting app for Git repositories
+    # Documentation: https://docs.gitea.com/administration/reverse-proxies#traefik
+    image: ${GITEA_IMAGE}
+    restart: always
+    depends_on:
+      - gitea-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.http.routers.gitea.rule=Host(`${GITEA_DOMAIN}`)"
+      - "traefik.http.routers.gitea.tls=true"
+      - "traefik.http.routers.gitea.tls.certresolver=letsencrypt"
+      # TODO: Check if port for SSH access is necessary?
+    environment:
+      # Source: https://docs.gitea.com/1.20/administration/config-cheat-sheet
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=gitea-db:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__database__PASSWD=/run/secrets/gitea_db_password
+      #- GITEA__service__REGISTER_MANUAL_CONFIRM=true
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__openid__ENABLE_OPENID_SIGNIN=false
+      - GITEA__openid__ENABLE_OPENID_SIGNUP=false
+      - GITEA__mailer__ENABLED=true
+      - GITEA__mailer__PROTOCOL=smtp #smtp+starttls
+      - GITEA__mailer__SMTP_ADDR=${GITEA_SMTP_ADDR}
+      - GITEA__mailer__SMTP_PORT=465
+      - GITEA__mailer__USER=${GITEA_SMTP_USER}
+      - GITEA__mailer__PASSWD=/run/secrets/gitea_smtp_password
+      - GITEA__mailer__FROM=${GITEA_SMTP_USER}
+      - GITEA__metrics__ENABLED=true
+      - GITEA__metrics__TOKEN=/run/secrets/gitea_metrics_token
+    volumes:
+      - gitea_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - gitea_net
+    secrets:
+      - gitea_db_password
+      - gitea_metrics_token
+      - gitea_smtp_password
+
+volumes:
+  gitea_data:
+  gitea_db_data:
+
+networks:
+  gitea_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  gitea_db_password:
+    file: gitea_db_password.txt
+  gitea_metrics_token:
+    file: gitea_metrics_token.txt
+  gitea_smtp_password:
+    file: gitea_smtp_password.txt
