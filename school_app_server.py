@@ -179,7 +179,8 @@ def prepare_cli_interface():
         'path':   'ansicyan',
         'bottom-toolbar': '#333333 bg:#ffcc00'
     })
-    app_list = {k: None for k, v in app_name_map.items()}.update({'all': None})
+    app_list = {k: None for k, v in app_name_map.items()}
+    app_list.update({'all': None})
     completer = NestedCompleter.from_nested_dict({
         'start': app_list,
         'stop': app_list,
