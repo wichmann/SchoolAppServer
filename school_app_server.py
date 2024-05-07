@@ -154,7 +154,7 @@ app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV,
 
 
 def create_logger():
-    """Create and configure a logger for logging to file and stdout."""
+    """Creates and configures a logger for logging to file and stdout."""
     logger.setLevel(logging.DEBUG)
     log_to_file = logging.handlers.RotatingFileHandler(
         'SchoolAppServer.log', maxBytes=262144, backupCount=5)
@@ -166,7 +166,7 @@ def create_logger():
 
 
 def parse_arguments():
-    """Parse command line arguments and return the given arguments."""
+    """Parses command line arguments and return the given arguments."""
     parser = ArgumentParser(description='Administrative tool for SchoolAppServer.')
     parser.add_argument('-i', '--initial-setup', action='store_true',
                         help='set up all initial configuration and secret files')
@@ -177,7 +177,7 @@ def parse_arguments():
 
 
 def prepare_cli_interface():
-    """Set up style, key bindings and autocompletion for command line interface."""
+    """Sets up style, key bindings and autocompletion for command line interface."""
     bindings = KeyBindings()
 
     @bindings.add('c-x')
@@ -194,13 +194,14 @@ def prepare_cli_interface():
     completer = NestedCompleter.from_nested_dict({
         'start': app_list,
         'stop': app_list,
+        'pull': app_list,
         'help': None,
         'setup': None,
         'status': None,
         'exit': None,
     })
     toolbar_text = '<b><style bg="ansired">Commands:</style></b>  -  '
-    toolbar_text += 'start [app]  -  stop [app]  -  status  -  setup  -  help  -  exit  -  ctrl+c to quit'
+    toolbar_text += 'start [app] - stop [app] - pull [app] - status - setup - help - exit - ctrl+c to quit'
     toolbar_text = HTML(toolbar_text)
     session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
                             key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
@@ -209,7 +210,7 @@ def prepare_cli_interface():
 
 def create_password(length=25):
     """
-    Create a secure password of a given length. The password should contain at
+    Creates a secure password of a given length. The password should contain at
     least one lower case character, one upper case character and one digit.
 
     Source: https://docs.python.org/3/library/secrets.html#recipes-and-best-practices
@@ -225,7 +226,7 @@ def create_password(length=25):
 
 
 def find_all_secrets():
-    """Iterate over the Docker Compose files of each stack and find all secrets defined there."""
+    """Iterates over the Docker Compose files of each stack and finds all secrets defined there."""
     all_secrets = []
     for path in Path('.').glob('*/docker-compose.yml'):
         data = yaml.safe_load(path.open())
@@ -251,7 +252,7 @@ def generate_htpasswd_bcrypt(username, password):
 
 def create_secret_files():
     """
-    Create all files with secrets referenced in the Docker Compose files and
+    Creates all files with secrets referenced in the Docker Compose files and
     fill them with long passwords.
     """
     smtp_password = prompt('Please enter the SMTP password: ', is_password=True)
@@ -286,14 +287,14 @@ def create_secret_files():
 
 
 def replace_string_in_file(filename, old_string, new_string):
-    """Replacing string in file (https://stackoverflow.com/a/20593644)"""
+    """Replaces a string in a given file (https://stackoverflow.com/a/20593644)"""
     with fileinput.FileInput(Path(filename), inplace=True, backup='.bak') as file:
         for line in file:
             python_print(line.replace(old_string, new_string), end='')
 
 
 def replace_mail_address_in_files(mail_address):
-    """Replace a given mail address in all configuration files."""
+    """Replaces a given mail address in all configuration files."""
     placeholder = 'mail@example.com'
     for path in Path('.').glob('*/*.yml'):
         if path.is_file():
@@ -304,7 +305,7 @@ def replace_mail_address_in_files(mail_address):
 
 
 def do_initial_setup():
-    """Initializing all configuration and secret files."""
+    """Initializes all configuration and secret files."""
     print(' *** Initializing all configuration and secret files *** ')
     # input all information from user
     mail_validator = Validator.from_callable(
@@ -355,7 +356,7 @@ def output_status(docker_clients):
 
 
 def start_app(docker_clients, app):
-    """Start all containers of a specific Docker stack."""
+    """Starts all containers of a specific Docker stack."""
     print(f' *** Starting app {app} *** \n')
     try:
         docker_client = docker_clients[app]
@@ -365,21 +366,28 @@ def start_app(docker_clients, app):
 
 
 def stop_app(docker_clients, app):
-    """Stop all containers of a specific Docker stack."""
+    """Stops all containers of a specific Docker stack."""
     print(f' *** Stopping app {app} *** \n')
     docker_client = docker_clients[app]
     docker_client.compose.down()
 
 
+def pull_app(docker_clients, app):
+    """Pulls all containers of a specific Docker stack."""
+    print(f' *** Pulling app {app} *** \n')
+    docker_client = docker_clients[app]
+    docker_client.compose.pull()
+
+
 def check_if_initial_setup_completed():
-    """Check whether initial setup has been executed."""
+    """Checks whether initial setup has been executed."""
     if Path(INITIAL_SETUP_MARKER_FILE).is_file():
         return True
     return False
 
 
 def main():
-    """Start command line interface and wait for commands."""
+    """Starts command line interface and waits for commands."""
     # check for commandline arguments
     args = parse_arguments()
     if args.initial_setup:
@@ -443,6 +451,22 @@ def main():
                 ).run()
                 for app in results_array:
                     stop_app(docker_clients, app)
+        elif command == 'pull':
+            if args:
+                if args[0] in app_name_map:
+                    pull_app(docker_clients, args[0])
+                elif args[0] == 'all':
+                    for app in app_name_map:
+                        pull_app(docker_clients, app)
+                else:
+                    print(HTML('<red>Given app not available!</red>'))
+            else:
+                results_array = checkboxlist_dialog(
+                    title="Pull apps", text="Which apps should be pulled?",
+                    values=list(app_name_map.items())
+                ).run()
+                for app in results_array:
+                    pull_app(docker_clients, app)
         elif command == 'setup':
             if check_if_initial_setup_completed():
                 text = 'The initial setup has already been executed. Do you want to run it again?'
