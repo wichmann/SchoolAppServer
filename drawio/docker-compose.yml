@@ -1,0 +1,24 @@
+services:
+  drawio:
+    image: ${DRAWIO_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.drawio.loadbalancer.server.port=8080"
+      - "traefik.http.routers.drawio.rule=Host(`${DRAWIO_DOMAIN}`)"
+      - "traefik.http.routers.drawio.tls=true"
+      - "traefik.http.routers.drawio.tls.certresolver=letsencrypt"
+    #  - traefik.http.routers.drawio.middlewares = [`drawio-modification`]
+    #  - "traefik.http.middlewares.drawio-modification.plugin.dev.type = `add`"
+    #  - "traefik.http.middlewares.drawio-modification.plugin.dev.paramName = `offline`"
+    #  - "traefik.http.middlewares.drawio-modification.plugin.dev.newValue = `1`"
+    networks:
+      - drawio_net
+    environment:
+      - PUBLIC_DNS=${DRAWIO_DOMAIN}
+
+networks:
+  drawio_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
