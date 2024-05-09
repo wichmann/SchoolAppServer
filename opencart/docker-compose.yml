@@ -21,6 +21,10 @@ services:
   opencart:
     # OpenCart - Open Source Shopping Cart Solution
     # Access administration under https://{OPENCART_HOST}/administration
+    # TODO: Figure out, how to use Traefik for SSL Offloading with OpenCart. On
+    #       port 8080 it uses HTTP requests for styles and scripts, which leads
+    #       to browser errors. For port 8443 OpenCart wants to be SSl endpoint
+    #       and uses it's own certificates?!
     image: ${OPENCART_IMAGE}
     depends_on:
       - opencart-db
@@ -28,8 +32,14 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.opencart.loadbalancer.server.port=8080"
       - "traefik.http.routers.opencart.rule=Host(`${OPENCART_DOMAIN}`)"
+    #  - "traefik.tcp.services.opencart.loadbalancer.server.port=8443"
+    #  - "traefik.tcp.routers.opencart.rule=HostSNI(`${OPENCART_DOMAIN}`)"
+    #  - "traefik.tcp.routers.opencart.service=opencart"
+    #  - "traefik.tcp.routers.opencart.tls=true"
       - "traefik.http.routers.opencart.tls=true"
       - "traefik.http.routers.opencart.tls.certresolver=letsencrypt"
+    #  - "traefik.http.routers.opencart.middlewares=opencart-headers"
+    #  - "traefik.http.middlewares.opencart-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
     volumes:
       - opencart_data:/bitnami/opencart
       - opencart_storage_data:/bitnami/opencart_storage/
@@ -39,21 +49,22 @@ services:
       - OPENCART_HOST=${OPENCART_DOMAIN}
       - OPENCART_EXTERNAL_HTTP_PORT_NUMBER=80
       - OPENCART_EXTERNAL_HTTPS_PORT_NUMBER=443
+    #  - OPENCART_ENABLE_HTTPS=yes
       - OPENCART_DATABASE_HOST=opencart-db
       - OPENCART_DATABASE_PORT_NUMBER=3306
       - OPENCART_DATABASE_USER=opencart
       - OPENCART_DATABASE_NAME=opencart
       - OPENCART_DATABASE_PASSWORD=/run/secrets/opencart_db_password
-      - OPENCART_USERNAME=admin 
-      - OPENCART_PASSWORD=/run/secrets/opencart_admin_password
+      - OPENCART_USERNAME=admin
+      # use env because secrets file does not seem to work here
+      - OPENCART_PASSWORD=${OPENCARD_ADMIN_PASSWORD}
       - OPENCART_EMAIL=${OPENCART_EMAIL}
-      - OPENCART_SMTP_HOST=${OPENCART_SMTP_ADDR}
-      - OPENCART_SMTP_PORT=${OPENCART_SMTP_PORT}
-      - OPENCART_SMTP_USER=${OPENCART_SMTP_USER}
-      - OPENCART_SMTP_PASSWORD=/run/secrets/opencart_smtp_password
+    #  - OPENCART_SMTP_HOST=${OPENCART_SMTP_ADDR}
+    #  - OPENCART_SMTP_PORT=${OPENCART_SMTP_PORT}
+    #  - OPENCART_SMTP_USER=${OPENCART_SMTP_USER}
+    #  - OPENCART_SMTP_PASSWORD=/run/secrets/opencart_smtp_password
     secrets:
       - opencart_db_password
-      - opencart_admin_password
       - opencart_smtp_password
 
 volumes:
@@ -75,7 +86,5 @@ secrets:
     file: opencart_db_root_password.txt
   opencart_db_password:
     file: opencart_db_password.txt
-  opencart_admin_password:
-    file: opencart_admin_password.txt
   opencart_smtp_password:
     file: opencart_smtp_password.txt
