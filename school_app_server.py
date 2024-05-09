@@ -153,17 +153,27 @@ OPENCART_SMTP_ADDR={opencart_smtp_addr}
 OPENCART_SMTP_PORT=465
 """
 
-app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Watchtower)', 'nextcloud': 'Nextcloud',
-                'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle',
-                'static': 'Landing Pages (Heimdall, Homer)', 'etherpad': 'Etherpad',
+PHPMYADMIN_ENV = """PHPMYADMIN_DB_IMAGE=mariadb:latest
+PHPMYADMIN_DOMAIN=phpmyadmin.{domain}
+PHPMYADMIN_IMAGE=phpmyadmin:latest
+"""
+
+app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
+                'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
+                'kanboard': 'Kanboard - Free and open source Kanban project management software',
+                'tools': 'Tools (Stirling PDF)', 'moodle': 'Moodle - Open Source Learning Management System',
+                'static': 'Landing Pages (Heimdall, Homer)',
+                'etherpad': 'Etherpad - Real-time collaborative editor for the web',
                 'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io', 'onlyoffice': 'OnlyOffice',
-                'jenkins': 'Jenkins CI', 'gitea': 'Gitea', 'wekan': 'WeKan - Open-Source Kanban',
-                'opencart': 'OpenCart - Open Source Shopping Cart Solution'}
+                'jenkins': 'Jenkins CI', 'gitea': 'Gitea - Open Source Self-Hosted Git Service',
+                'wekan': 'WeKan - Open-Source Kanban', 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB',
+                'opencart': 'OpenCart - Open Source Shopping Cart Solution (currently not working!)'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
                'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
-               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV}
+               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV,
+               'phpmyadmin': PHPMYADMIN_ENV}
 
 basic_configuration = {}
 
@@ -337,6 +347,8 @@ def do_initial_basic_setup():
         move_cursor_to_end=True,
     )
     mail_address = prompt('Please enter your mail address: ', validator=mail_validator)
+    # get base domain name (for non-ASCII characters in domain names, punycode has to used!)
+    # Source: https://doc.traefik.io/traefik/routing/routers/#host-and-hostregexp
     domain_prompt = 'Please enter your domain name (third-level domain will be added, e.g. nicedomain.com): '
     domain_name = prompt(domain_prompt, validator=domain_validator)
     # write basic configuration to file

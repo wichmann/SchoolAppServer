@@ -1,0 +1,58 @@
+services:
+  phpmyadmin-db:
+    image: ${PHPMYADMIN_DB_IMAGE}
+    restart: unless-stopped
+    environment:
+      - MARIADB_USER=phpmyadmin
+      - MARIADB_PASSWORD=/run/secrets/phpmyadmin_db_password
+      - MARIADB_DATABASE=phpmyadmin
+      - MARIADB_ROOT_PASSWORD=/run/secrets/phpmyadmin_db_root_password
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    volumes:
+      - phpmyadmin_db_data:/var/lib/mysql
+    networks:
+      - phpmyadmin_net
+    secrets:
+      - phpmyadmin_db_root_password
+      - phpmyadmin_db_password
+
+  phpmyadmin:
+    image: ${PHPMYADMIN_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - phpmyadmin-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"
+      - "traefik.http.routers.phpmyadmin.rule=Host(`${PHPMYADMIN_DOMAIN}`)"
+      - "traefik.http.routers.phpmyadmin.tls=true"
+      - "traefik.http.routers.phpmyadmin.tls.certresolver=letsencrypt"
+    networks:
+      - phpmyadmin_net
+    environment:
+      - PMA_HOST=phpmyadmin-db
+      - PMA_ABSOLUTE_URI=https://${PHPMYADMIN_DOMAIN}/
+      - MYSQL_USER=phpmyadmin
+      - MYSQL_PASSWORD_FILE=/run/secrets/phpmyadmin_db_password
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+      #- PMA_PMADB=phpmyadmin
+    secrets:
+      - phpmyadmin_db_password
+
+volumes:
+  phpmyadmin_db_data:
+
+networks:
+  phpmyadmin_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  phpmyadmin_db_root_password:
+    file: phpmyadmin_db_root_password.txt
+  phpmyadmin_db_password:
+    file: phpmyadmin_db_password.txt
