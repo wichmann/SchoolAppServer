@@ -142,16 +142,27 @@ WEKAN_SMTP_PASSWORD={wekan_smtp_password}
 WEKAN_SMTP_PORT=465
 """
 
+OPENCART_ENV = """OPENCART_DB_IMAGE=mariadb:10
+OPENCART_IMAGE=bitnami/opencart:4
+OPENCART_DOMAIN=opencart.{domain}
+OPENCART_EMAIL={opencart_email}
+OPENCART_HOST={opencart_host}
+OPENCART_ADMIN_PASSWORD={opencart_admin_password}
+OPENCART_SMTP_USER={opencart_smtp_user}
+OPENCART_SMTP_ADDR={opencart_smtp_addr}
+OPENCART_SMTP_PORT=465
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services', 'nextcloud': 'Nextcloud',
                 'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle', 'static': 'Static apps',
                 'etherpad': 'Etherpad', 'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io',
                 'onlyoffice': 'OnlyOffice', 'jenkins': 'Jenkins CI', 'gitea': 'Gitea',
-                'wekan': 'WeKan - Open-Source Kanban'}
+                'wekan': 'WeKan - Open-Source Kanban', 'opencart': 'OpenCart - Open Source Shopping Cart Solution'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
                'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
-               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV}
+               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV}
 
 
 def create_logger():
