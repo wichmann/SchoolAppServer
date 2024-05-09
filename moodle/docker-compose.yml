@@ -40,7 +40,8 @@ services:
       - MOODLE_DATABASE_PASSWORD=/run/secrets/moodle_db_password
       - MOODLE_DATABASE_NAME=moodle
       - MOODLE_USERNAME=admin
-      - MOODLE_PASSWORD=1234
+      # uses env because secrets file does not seem to work here
+      - MOODLE_PASSWORD=${MOODLE_ADMIN_PASSWORD}
       - MOODLE_EMAIL=${MOODLE_ADMIN_EMAIL}
       - MOODLE_SITE_NAME=${MOODLE_SITE_NAME}
       - MOODLE_HOST=${MOODLE_DOMAIN1}

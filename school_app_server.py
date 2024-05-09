@@ -54,7 +54,7 @@ INITIAL_SETUP_MARKER_FILE = '.initial_setup_complete'
 
 INFRASTRUCTURE_ENV = """UPTIMEKUMA_IMAGE=louislam/uptime-kuma:1
 UPTIMEKUMA_DOMAIN=status.{domain}
-TRAEFIK_IMAGE=traefik:v2.11
+TRAEFIK_IMAGE=traefik:v3.0
 TRAEFIK_DASHBOARD_DOMAIN=dashboard.{domain}
 TRAEFIK_METRICS_DOMAIN=metrics.{domain}
 PORTAINER_IMAGE=portainer/portainer-ce:latest
@@ -90,6 +90,7 @@ MOODLE_SMTP_ADDR={moodle_smtp_addr}
 MOODLE_SMTP_PORT=465
 MOODLE_SMTP_USER={moodle_smtp_user}
 MOODLE_ADMIN_EMAIL={moodle_admin_mail_address}
+MOODLE_ADMIN_PASSWORD={moodle_admin_password}
 MOODLE_SITE_NAME={moodle_site_name}
 """
 
@@ -470,11 +471,12 @@ def main():
         elif command == 'setup':
             if check_if_initial_setup_completed():
                 text = 'The initial setup has already been executed. Do you want to run it again?'
-                run_again = yes_no_dialog(
-                    title='Run initial setup again?', text=text).run()
-                if run_again:
-                    do_initial_setup()
+                title_text = 'Run initial setup again?'
             else:
+                text = 'Do you really want to run the initial setup for all apps?'
+                title_text = 'Run initial setup for all apps?'
+            do_run = yes_no_dialog(title=title_text, text=text).run()
+            if do_run:
                 do_initial_setup()
         elif command == 'help':
             print(HTML(f'<skyblue>{APP}</skyblue> <violet>{VERSION}</violet>'))
