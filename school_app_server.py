@@ -22,6 +22,7 @@ import os
 import sys
 import string
 import secrets
+import tomllib
 import fileinput
 import logging
 import logging.handlers
@@ -146,23 +147,25 @@ OPENCART_ENV = """OPENCART_DB_IMAGE=mariadb:10
 OPENCART_IMAGE=bitnami/opencart:4
 OPENCART_DOMAIN=opencart.{domain}
 OPENCART_EMAIL={opencart_email}
-OPENCART_HOST={opencart_host}
 OPENCART_ADMIN_PASSWORD={opencart_admin_password}
 OPENCART_SMTP_USER={opencart_smtp_user}
 OPENCART_SMTP_ADDR={opencart_smtp_addr}
 OPENCART_SMTP_PORT=465
 """
 
-app_name_map = {'infrastructure': 'Infrastructure Services', 'nextcloud': 'Nextcloud',
-                'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle', 'static': 'Static apps',
-                'etherpad': 'Etherpad', 'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io',
-                'onlyoffice': 'OnlyOffice', 'jenkins': 'Jenkins CI', 'gitea': 'Gitea',
-                'wekan': 'WeKan - Open-Source Kanban', 'opencart': 'OpenCart - Open Source Shopping Cart Solution'}
+app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Watchtower)', 'nextcloud': 'Nextcloud',
+                'kanboard': 'Kanboard', 'tools': 'Tool Apps', 'moodle': 'Moodle',
+                'static': 'Landing Pages (Heimdall, Homer)', 'etherpad': 'Etherpad',
+                'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io', 'onlyoffice': 'OnlyOffice',
+                'jenkins': 'Jenkins CI', 'gitea': 'Gitea', 'wekan': 'WeKan - Open-Source Kanban',
+                'opencart': 'OpenCart - Open Source Shopping Cart Solution'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
                'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV}
+
+basic_configuration = {}
 
 
 def create_logger():
@@ -199,7 +202,7 @@ def prepare_cli_interface():
         '':       '#00ff00',
         'pound':  '#00ff00',
         'path':   'ansicyan',
-        'bottom-toolbar': '#333333 bg:#ffcc00'
+        'bottom-toolbar': '#444444 bg:#ffcc00'
     })
     app_list = {k: None for k, v in app_name_map.items()}
     app_list.update({'all': None})
@@ -208,12 +211,12 @@ def prepare_cli_interface():
         'stop': app_list,
         'pull': app_list,
         'help': None,
-        'setup': None,
+        'setup': app_list,
         'status': None,
         'exit': None,
     })
-    toolbar_text = '<b><style bg="ansired">Commands:</style></b>  -  '
-    toolbar_text += 'start [app] - stop [app] - pull [app] - status - setup - help - exit - ctrl+c to quit'
+    toolbar_text = '<b>Commands:</b>  -  '
+    toolbar_text += 'start [app] - stop [app] - pull [app] - status - setup [app] - help - exit - ctrl+c to quit'
     toolbar_text = HTML(toolbar_text)
     session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
                             key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
@@ -262,23 +265,25 @@ def generate_htpasswd_bcrypt(username, password):
     return f'{username}:{bcrypted}'
 
 
-def create_secret_files():
+def create_secret_files(given_app):
     """
     Creates all files with secrets referenced in the Docker Compose files and
-    fill them with long passwords.
+    fill them with long passwords for a given app.
     """
-    smtp_password = prompt('Please enter the SMTP password: ', is_password=True)
     for app, filename in find_all_secrets():
+        if app != given_app:
+            continue
         filepath = Path(app) / filename
         if 'dashboard_auth' in filename:
             chosen_password = create_password()
-            print(f'Generated password for Traefik Dashboard (user "admin"): {chosen_password}')
+            print(f'Generated htpasswd password for Traefik Dashboard (user "admin"): {chosen_password}')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
                 logger.debug('Writing HTTP auth string to file: %s', filename)
         elif 'smtp_password' in filename:
             # handle SMTP password files
             with open(filepath, 'w', encoding='utf-8') as f:
+                smtp_password = prompt('Please enter the SMTP password: ', is_password=True)
                 f.write(smtp_password)
                 logger.debug('Writing SMTP password to file: %s', filename)
         elif 'telegram' in filename:
@@ -316,9 +321,9 @@ def replace_mail_address_in_files(mail_address):
                     replace_string_in_file(path, placeholder, mail_address)
 
 
-def do_initial_setup():
-    """Initializes all configuration and secret files."""
-    print(' *** Initializing all configuration and secret files *** ')
+def do_initial_basic_setup():
+    """Initializes basic configuration."""
+    print(' *** Initializing basic configuration *** ')
     # input all information from user
     mail_validator = Validator.from_callable(
         # do a very simple check for validity (https://stackoverflow.com/a/8022584)
@@ -334,14 +339,25 @@ def do_initial_setup():
     mail_address = prompt('Please enter your mail address: ', validator=mail_validator)
     domain_prompt = 'Please enter your domain name (third-level domain will be added, e.g. nicedomain.com): '
     domain_name = prompt(domain_prompt, validator=domain_validator)
-    create_secret_files()
-    replace_mail_address_in_files(mail_address)
+    # write basic configuration to file
+    with open(Path(INITIAL_SETUP_MARKER_FILE), 'w', encoding='utf-8') as f:
+        f.write(f'mail-address = "{mail_address}"\ndomain-name = "{domain_name}"\n')
+    # set correct file permissions for acme.json in app 'infrastructure'
+    os.chmod(Path('infrastructure') / 'acme.json', 0o600)
+
+
+def do_initial_setup_for_app(given_app):
+    """Initializes all environment variables and secret files for given app."""
+    print(f' *** Initializing app configuration for {given_app} *** ')
+    create_secret_files(given_app)
+    replace_mail_address_in_files(basic_configuration['mail-address'])
     # handle environment variable files
     for app, env_vars in app_var_map.items():
-        parameters = {'domain': domain_name}
+        if app != given_app:
+            continue
+        parameters = {'domain': basic_configuration['domain-name']}
         # get all placeholders from string  (https://stackoverflow.com/a/14061832)
-        parameter_names = [name for text, name, spec, conv in string.Formatter().parse(
-            env_vars) if name is not None]
+        parameter_names = [name for text, name, spec, conv in string.Formatter().parse(env_vars) if name is not None]
         # filter missing parameters and input them from user
         parameter_names = set(parameter_names)
         parameter_names.remove('domain')
@@ -351,25 +367,29 @@ def do_initial_setup():
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(env_vars.format(**parameters))
-    # set correct file permissions for acme.json
-    os.chmod(Path('infrastructure') / 'acme.json', 0o600)
-    Path(INITIAL_SETUP_MARKER_FILE).touch()
+        # mark single app directories as initialized
+        (Path(app) / INITIAL_SETUP_MARKER_FILE).touch()
 
 
 def output_status(docker_clients):
     """Outputs status information about all stacks and their respective containers."""
     print(' *** Stacks and Container *** \n')
     for app, docker in docker_clients.items():
-        container = docker.compose.ps(all=True)
-        mark = '✔️' if container else '❌'
-        print(f' {mark} {app_name_map[app]} {"⣿" * len(container)}')
-        for c in container:
-            print(f'    - {c.name}')
+        if check_if_initial_setup_completed(app):
+            container = docker.compose.ps(all=True)
+            mark = '✔️' if container else '❌'
+            print(f' {mark} {app_name_map[app]} {"⣿" * len(container)}')
+            for c in container:
+                print(f'    - {c.name}')
+        else:
+            print(HTML(f' ❌ {app_name_map[app]} - <style color="#ffcc00">Not yet initialized!</style>'))
 
 
 def start_app(docker_clients, app):
     """Starts all containers of a specific Docker stack."""
     print(f' *** Starting app {app} *** \n')
+    if not check_if_initial_setup_completed(app):
+        do_initial_setup_for_app(app)
     try:
         docker_client = docker_clients[app]
         docker_client.compose.up(services=None, build=False, detach=True, pull='missing')
@@ -379,41 +399,70 @@ def start_app(docker_clients, app):
 
 def stop_app(docker_clients, app):
     """Stops all containers of a specific Docker stack."""
-    print(f' *** Stopping app {app} *** \n')
-    docker_client = docker_clients[app]
-    docker_client.compose.down()
+    if check_if_initial_setup_completed(app):
+        print(f' *** Stopping app {app} *** \n')
+        docker_client = docker_clients[app]
+        docker_client.compose.down()
 
 
 def pull_app(docker_clients, app):
     """Pulls all containers of a specific Docker stack."""
     print(f' *** Pulling app {app} *** \n')
-    docker_client = docker_clients[app]
-    docker_client.compose.pull()
+    if check_if_initial_setup_completed(app):
+        docker_client = docker_clients[app]
+        docker_client.compose.pull()
 
 
-def check_if_initial_setup_completed():
+def check_if_initial_setup_completed(app=None):
     """Checks whether initial setup has been executed."""
-    if Path(INITIAL_SETUP_MARKER_FILE).is_file():
-        return True
+    if app:
+        if (Path(app) / INITIAL_SETUP_MARKER_FILE).is_file():
+            return True
+    else:
+        if Path(INITIAL_SETUP_MARKER_FILE).is_file():
+            return True
     return False
+
+
+def show_help_info():
+    """Show help page with information about available commands."""
+    print(HTML(f'<skyblue>{APP}</skyblue> <violet>{VERSION}</violet>'))
+    print(HTML('<orange>start [app]</orange> - Start one or all Docker Compose stack.'))
+    print(HTML('<orange>stop [app]</orange>  - Stop one or all Docker Compose stack.'))
+    print(HTML('<orange>pull [app]</orange>  - Stop one or all Docker Compose stack.'))
+    print(HTML('<orange>status</orange>      - Show status of all Docker Compose stacks.'))
+    print(HTML('<orange>setup</orange>       - Execute initial set up of configuration files.'))
+    print(HTML('<orange>help</orange>        - Show this list of commands.'))
+    print(HTML('<orange>exit</orange>        - Exit the programm.'))
+
+
+def load_basic_configuration():
+    """Loads basic configuration from file."""
+    try:
+        with open(Path(INITIAL_SETUP_MARKER_FILE), 'rb') as f:
+            global basic_configuration
+            basic_configuration = tomllib.load(f)
+    except FileNotFoundError:
+        logger.debug('Could not find basic configuration file.')
 
 
 def main():
     """Starts command line interface and waits for commands."""
+    # prepare session
+    session = prepare_cli_interface()
+    prompt_message = [('class:pound', '\n ➭ ')]
     # check for commandline arguments
     args = parse_arguments()
     if args.initial_setup:
         logger.info('Initializing all configuration and secret files...')
-        do_initial_setup()
-    # begin commandline session
-    session = prepare_cli_interface()
-    prompt_message = [('class:pound', '\n ➭ ')]
+        do_initial_basic_setup()
     # prepare instances of Docker client
     # (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
     docker_clients = {}
     for app, _ in app_var_map.items():
         docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
         docker_clients[app] = docker
+    load_basic_configuration()
     print(f'{APP} {VERSION}')
     while True:
         try:
@@ -433,6 +482,7 @@ def main():
             output_status(docker_clients)
         elif command == 'start':
             if args:
+                # TODO: Handle multiple given app names instead of just on app.
                 if args[0] in app_name_map:
                     start_app(docker_clients, args[0])
                 elif args[0] == 'all':
@@ -480,24 +530,27 @@ def main():
                 for app in results_array:
                     pull_app(docker_clients, app)
         elif command == 'setup':
-            if check_if_initial_setup_completed():
-                text = 'The initial setup has already been executed. Do you want to run it again?'
-                title_text = 'Run initial setup again?'
+            if args:
+                if args[0] in app_name_map:
+                    do_initial_setup_for_app(args[0])
+                elif args[0] == 'all':
+                    for app in app_name_map:
+                        do_initial_setup_for_app(app)
+                else:
+                    print(HTML('<red>Given app not available!</red>'))
             else:
-                text = 'Do you really want to run the initial setup for all apps?'
-                title_text = 'Run initial setup for all apps?'
-            do_run = yes_no_dialog(title=title_text, text=text).run()
-            if do_run:
-                do_initial_setup()
+                if check_if_initial_setup_completed():
+                    text = 'The initial basic setup has already been executed. Do you want to run it again?'
+                    title_text = 'Run initial setup again?'
+                else:
+                    text = 'Do you really want to run the initial basic setup?'
+                    title_text = 'Run initial setup for all apps?'
+                do_run = yes_no_dialog(title=title_text, text=text).run()
+                if do_run:
+                    do_initial_basic_setup()
+                    load_basic_configuration()
         elif command == 'help':
-            print(HTML(f'<skyblue>{APP}</skyblue> <violet>{VERSION}</violet>'))
-            print(HTML('<orange>start [app]</orange> - Start one or all Docker Compose stack.'))
-            print(HTML('<orange>stop [app]</orange>  - Stop one or all Docker Compose stack.'))
-            print(HTML('<orange>pull [app]</orange>  - Stop one or all Docker Compose stack.'))
-            print(HTML('<orange>status</orange>      - Show status of all Docker Compose stacks.'))
-            print(HTML('<orange>setup</orange>       - Execute initial set up of configuration files.'))
-            print(HTML('<orange>help</orange>        - Show this list of commands.'))
-            print(HTML('<orange>exit</orange>        - Exit the programm.'))
+            show_help_info()
         else:
             print(HTML('<red>Invalid command!</red>'))
 

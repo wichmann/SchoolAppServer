@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 python-on-whales = "*"
 prompt-toolkit = "*"
-yaspin = "*"
 pyyaml = "*"
 bcrypt = "*"
 

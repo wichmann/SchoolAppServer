@@ -36,7 +36,7 @@ services:
     networks:
       - opencart_net
     environment:
-      - OPENCART_HOST=${OPENCART_HOST}
+      - OPENCART_HOST=${OPENCART_DOMAIN}
       - OPENCART_EXTERNAL_HTTP_PORT_NUMBER=80
       - OPENCART_EXTERNAL_HTTPS_PORT_NUMBER=443
       - OPENCART_DATABASE_HOST=opencart-db

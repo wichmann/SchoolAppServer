@@ -1,13 +1,13 @@
 
 [MAIN]
 
-max-branches=40
-max-statements=80
+max-branches=50
+max-statements=100
 
 
 [MESSAGES CONTROL]
 
-disable=redefined-builtin,import-error,wrong-import-position
+disable=redefined-builtin,import-error,wrong-import-position,fixme,global-statement
 
 
 [REPORTS]

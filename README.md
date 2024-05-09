@@ -42,17 +42,22 @@ install all Python libraries:
 
 ## Usage
 
-After cloning the repository you should generate all configuration and
-passwords files by starting the program and entering the command 'setup':
+After cloning the repository you should provide the basic configuration common
+to all app by entering the command 'setup':
 
     pipenv run ./school_app_server.py
+
+     ➭ setup
 
 If you use a non-root user, please use sudo to get root permissions:
 
     pipenv run sudo ./school_app_server.py
 
-If all stack are configured properly you can start and stop them by executing
-the commands 'start' and 'stop'.
+     ➭ setup
+
+After that you can start and stop apps by executing the commands 'start' and
+'stop'. When starting an app for the first time, you have to generate all
+environment variables and secrets files. This will be done automatically.
 
 You should start the app 'infrastructure' first, before starting any of the
 other apps:
@@ -61,4 +66,12 @@ other apps:
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3.svg)](https://asciinema.org/a/JVsbfUozhtUg2YFezK8FdjOw3)
+[![asciicast](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC.svg)](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC)
+
+## Requirements:
+
+* Python 3.11 or above
+* python-on-whales
+* prompt-toolkit
+* pyyaml
+* bcrypt
