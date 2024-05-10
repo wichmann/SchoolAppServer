@@ -58,6 +58,11 @@ services:
 
   watchtower:
     # Checks all containers for new images and updates them automatically
+    # If notifications should be sent to a telegram channel, you have to create a bot first.
+    #  -> https://core.telegram.org/bots/tutorial
+    # Then you have to get your private chat ID after subscribing to the new bot.
+    #  -> https://flows.network/blog/how-to-find-telegram-chat-id
+    # The Telegram notification URL looks like this: telegram://[bot_id]@telegram/?channels=[chat_id]'
     image: ${WATCHTOWER_IMAGE}
     restart: always
     environment:
@@ -75,7 +80,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro
-      #- ./config.json:/config.json
     secrets:
       - watchtower_telegram_url
 
