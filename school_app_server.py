@@ -165,6 +165,13 @@ ADMIN_TOKEN={jupyter_admin_token}
 ADMIN_PASSWORD={jupyter_admin_password}
 """
 
+COLLABORA_ENV = """COLLABORA_IMAGE=collabora/code:latest
+COLLABORA_DOMAIN=collabora.{domain}
+COLLABORA_NEXTCLOUD_DOMAIN=nextcloud.{domain}
+COLLABORA_USERNAME={collabora_username}
+COLLABORA_PASSWORD={collabora_password}
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
@@ -178,13 +185,14 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'jupyter-lab': 'Jupyter Notebook Scientific Python Stack',
+                'collabora': 'Collabora Online Development Edition - A online office suite',
                 'static': 'Landing Pages (Heimdall, Homer)'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
                'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV,
-               'phpmyadmin': PHPMYADMIN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV}
+               'phpmyadmin': PHPMYADMIN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV, 'collabora': COLLABORA_ENV}
 
 basic_configuration = {}
 
@@ -387,11 +395,12 @@ def do_initial_setup_for_app(given_app):
         parameter_names = set(parameter_names)
         parameter_names.remove('domain')
         for p in parameter_names:
+            cleaned_up_p = p.replace('_', ' ')
             if 'password' in p or 'token' in p:
                 print('This seems to be a password or token, so a random secure value is suggested.')
-                parameters[p] = prompt(f'Please enter parameter "{p}": ', default=create_password())
+                parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
             else:
-                parameters[p] = prompt(f'Please enter parameter "{p}": ')
+                parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
         filename = Path(app, '.env')
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:

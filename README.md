@@ -23,7 +23,8 @@ It provides Docker stacks containing the following services:
 * WeKan - Open-Source Kanban
 * Jupyter Notebook Scientific Python Stack
 * OnlyOffice - A free and open source office and productivity suite
-* StirlingPDF
+* Collabora Online Development Edition - A online office suite
+* StirlingPDF - Web-based PDF manipulation tool
 * Homer
 * Heimdall
 

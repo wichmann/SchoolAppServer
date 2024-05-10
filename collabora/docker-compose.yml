@@ -1,0 +1,38 @@
+services:
+  collabora:
+    # Collabora Online Development Edition
+    # Admin interface under https://collabora.yourdomain.com/browser/dist/admin/admin.html
+    image: ${COLLABORA_IMAGE}
+    container_name: collabora
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.collabora.loadbalancer.server.port=9980"
+      - "traefik.http.routers.collabora.rule=Host(`${COLLABORA_DOMAIN}`)"
+      - "traefik.http.routers.collabora.tls=true"
+      - "traefik.http.routers.collabora.tls.certresolver=letsencrypt"
+    networks:
+      - collabora_net
+    environment:
+      #- VIRTUAL_PROTO=http
+      #- VIRTUAL_PORT=9980
+      #- VIRTUAL_HOST=${COLLABORA_URL}
+      #- PUID=1000
+      #- PGID=1000
+      #- TZ=Europe/Berlin
+      - aliasgroup1=https://${COLLABORA_NEXTCLOUD_DOMAIN}
+      - username=${COLLABORA_USERNAME} # User name for the admin console
+      - password=${COLLABORA_PASSWORD} # Password for the admin console
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=true
+      - server_name=${COLLABORA_DOMAIN}
+      - dictionaries=en_US,de_DE
+      - cert_domain=${COLLABORA_DOMAIN}
+    cap_add:
+      # this should not be necessary, because Docker automatically grants this permission?!
+      - MKNOD
+
+networks:
+  collabora_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true

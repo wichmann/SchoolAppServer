@@ -42,6 +42,9 @@ services:
 
   nextcloud:
     # Webbased file storage solution
+    # After the installation some tasks have to be executed manually:
+    #  > docker compose -f nextcloud/docker-compose.yml exec --user www-data nextcloud php occ config:system:set default_phone_region --value="DE"
+    #  > docker compose -f nextcloud/docker-compose.yml exec --user www-data nextcloud php occ db:add-missing-indices
     image: ${NEXTCLOUD_IMAGE}
     restart: unless-stopped
     depends_on:
