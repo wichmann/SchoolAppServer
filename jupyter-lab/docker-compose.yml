@@ -1,0 +1,30 @@
+services:
+  jupyter:
+    # Jupyter Notebook Scientific Python Stack
+    # Documentation: https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html
+    image: ${JUPYTER_IMAGE}
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.jupyter.loadbalancer.server.port=8888"
+      - "traefik.http.routers.jupyter.rule=Host(`${JUPYTER_DOMAIN}`)"
+      - "traefik.http.routers.jupyter.tls=true"
+      - "traefik.http.routers.jupyter.tls.certresolver=letsencrypt"
+    environment:
+      - DOCKER_STACKS_JUPYTER_CMD=lab # lab (default), notebook, nbclassic, server, retro
+      - JUPYTER_TOKEN=${ADMIN_TOKEN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    volumes:
+      - jupyter_data:/home/jovyan
+      - ./jupyterhub_config.py:/home/jovyan/.jupyter/jupyter_server_config.py
+    networks:
+      - jupyter_net
+
+volumes:
+  jupyter_data:
+
+networks:
+  jupyter_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true

@@ -158,6 +158,12 @@ PHPMYADMIN_DOMAIN=phpmyadmin.{domain}
 PHPMYADMIN_IMAGE=phpmyadmin:latest
 """
 
+JUPYTER_LAB_ENV = """JUPYTER_IMAGE=quay.io/jupyter/scipy-notebook:latest
+JUPYTER_DOMAIN=jupyter.{domain}
+ADMIN_TOKEN={jupyter_admin_token}
+ADMIN_PASSWORD={jupyter_admin_password}
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
@@ -166,14 +172,16 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'etherpad': 'Etherpad - Real-time collaborative editor for the web',
                 'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io', 'onlyoffice': 'OnlyOffice',
                 'jenkins': 'Jenkins CI', 'gitea': 'Gitea - Open Source Self-Hosted Git Service',
-                'wekan': 'WeKan - Open-Source Kanban', 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB',
-                'opencart': 'OpenCart - Open Source Shopping Cart Solution (currently not working!)'}
+                'wekan': 'WeKan - Open-Source Kanban',
+                'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)',
+                'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
+                'jupyter-lab': 'Jupyter Notebook Scientific Python Stack'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
                'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV,
-               'phpmyadmin': PHPMYADMIN_ENV}
+               'phpmyadmin': PHPMYADMIN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV}
 
 basic_configuration = {}
 
