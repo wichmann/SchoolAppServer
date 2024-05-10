@@ -22,7 +22,11 @@ import os
 import sys
 import string
 import secrets
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    # fall back if Python version does not include tomllib
+    import tomli as tomllib
 import fileinput
 import logging
 import logging.handlers

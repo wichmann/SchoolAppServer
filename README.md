@@ -45,6 +45,14 @@ install all Python libraries:
 
     pipenv install
 
+If the pipenv version in the repository of your distribution is too old,
+please install pipenv directly with pip:
+
+    sudo pip install --upgrade pipenv
+
+Depending on the installed version of Python, you have to adjust the version in
+the Pipfile.
+
 ## Usage
 
 After cloning the repository you should provide the basic configuration common
@@ -80,6 +88,7 @@ other apps:
 * prompt-toolkit
 * pyyaml
 * bcrypt
+* tomli (fallback for Python versions older than 3.11)
 
 ## Links
 
