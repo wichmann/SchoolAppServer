@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 # Configuration file for jupyter-server.
 
 c = get_config()  #noqa
