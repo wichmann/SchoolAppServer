@@ -1,27 +1,17 @@
-
 [MAIN]
-
-max-branches=50
-max-statements=100
-
+max-branches=40
+max-statements=60
 
 [MESSAGES CONTROL]
-
 disable=redefined-builtin,import-error,wrong-import-position,fixme,global-statement
 
-
 [REPORTS]
-
 output-format=colorized
 
-
 [FORMAT]
-
 max-line-length=120
 
-
 [SIMILARITIES]
-
 min-similarity-lines=4
 ignore-comments=yes
 ignore-docstrings=yes

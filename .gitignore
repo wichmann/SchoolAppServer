@@ -3,3 +3,5 @@
 editors/
 school/
 *.log
+.initialized
+*/.initialized

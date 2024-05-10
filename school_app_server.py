@@ -51,7 +51,7 @@ logger = logging.getLogger('school_app_server')
 
 APP = 'SchoolAppServer'
 VERSION = '1.0'
-INITIAL_SETUP_MARKER_FILE = '.initial_setup_complete'
+INITIAL_SETUP_MARKER_FILE = '.initialized'
 
 INFRASTRUCTURE_ENV = """UPTIMEKUMA_IMAGE=louislam/uptime-kuma:1
 UPTIMEKUMA_DOMAIN=status.{domain}

@@ -2,22 +2,26 @@
 
 # SchoolAppServer
 
-Configures and prepares Docker Compose scripts to setup a schools app server.
+Provides scripts and configuration files to setup a school's app server. All
+applications are deployed with Docker Compose and served by Traefik as reverse
+proxy. Docker images will be automatically updated by Watchtower.
+
 It provides Docker stacks containing the following services:
 
 * Traefik
 * Portainer
 * Watchtower
 * Uptime Kuma
-* Nextcloud
-* Moodle
-* Kanboard
+* Nextcloud - Self hosted open source cloud file storage
+* Moodle - Open Source Learning Management System
+* Kanboard - Free and open source Kanban project management software
 * Jenkins CI
-* Gitea
-* Etherpad
+* Gitea - Open Source Self-Hosted Git Service
+* Etherpad - Real-time collaborative editor for the web
 * Hedgedoc Markdown Editor
 * draw.io
 * WeKan - Open-Source Kanban
+* Jupyter Notebook Scientific Python Stack
 * OnlyOffice
 * StirlingPDF
 * Homer
@@ -68,10 +72,15 @@ other apps:
 
 [![asciicast](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC.svg)](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC)
 
-## Requirements:
+## Requirements
 
 * Python 3.11 or above
 * python-on-whales
 * prompt-toolkit
 * pyyaml
 * bcrypt
+
+## Links
+
+* Traefik: https://traefik.io/traefik/
+* Watchtower: https://containrrr.dev/watchtower/
