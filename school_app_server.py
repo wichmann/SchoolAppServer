@@ -176,6 +176,12 @@ COLLABORA_USERNAME={collabora_username}
 COLLABORA_PASSWORD={collabora_password}
 """
 
+MATTERMOST_ENV = """MATTERMOST_DOMAIN=mm.{domain}
+MATTERMOST_DB_IMAGE=postgres:13-alpine
+MATTERMOST_DB_PASSWORD={mattermost_db_password}
+MATTERMOST_IMAGE=mattermost/mattermost-team-edition:release-9
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
@@ -190,13 +196,14 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'jupyter-lab': 'Jupyter Notebook Scientific Python Stack',
                 'collabora': 'Collabora Online Development Edition - A online office suite',
+                'mattermost': 'Mattermost - Open-source, self-hostable online chat service with file sharing',
                 'static': 'Landing Pages (Heimdall, Homer)'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
-               'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
-               'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV, 'onlyoffice': ONLYOFFICE_ENV,
-               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'opencart': OPENCART_ENV,
-               'phpmyadmin': PHPMYADMIN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV, 'collabora': COLLABORA_ENV}
+               'moodle': MOODLE_ENV, 'etherpad': ETHERPAD_ENV, 'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV,
+               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV,
+               'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV, 'mattermost': MATTERMOST_ENV,
+               'tools': TOOLS_ENV, 'static': STATIC_ENV, 'opencart': OPENCART_ENV, 'phpmyadmin': PHPMYADMIN_ENV}
 
 basic_configuration = {}
 

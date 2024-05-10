@@ -1,0 +1,68 @@
+services:
+  mattermost-db:
+    image: ${MATTERMOST_DB_IMAGE}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    volumes:
+      - mattermost_db_data:/var/lib/postgresql/data
+    networks:
+      - mattermost_net
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_DB=mattermost
+      - POSTGRES_USER=mmuser
+      - POSTGRES_PASSWORD=${MATTERMOST_DB_PASSWORD}
+
+  mattermost:
+    # Mattermost - Open-source, self-hostable online chat service with file sharing
+    # Sources: https://github.com/mattermost/docker, https://docs.mattermost.com/install/install-docker.html
+    image: ${MATTERMOST_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - mattermost-db
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 200
+    tmpfs:
+      - /tmp
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
+      - "traefik.http.routers.mattermost.rule=Host(`${MATTERMOST_DOMAIN}`)"
+      - "traefik.http.routers.mattermost.tls=true"
+      - "traefik.http.routers.mattermost.tls.certresolver=letsencrypt"
+    volumes:
+      - mattermost_config_data:/mattermost/config:rw
+      - mattermost_data:/mattermost/data:rw
+      - mattermost_log_data:/mattermost/logs:rw
+      - mattermost_plugins_data:/mattermost/plugins:rw
+      - mattermost_client_plugins_data:/mattermost/client/plugins:rw
+      - mattermost_bleve_indexes_data:/mattermost/bleve-indexes:rw
+    networks:
+      - mattermost_net
+    environment:
+      - TZ=Europe/Berlin
+      - MM_SQLSETTINGS_DRIVERNAME=postgres
+      - MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:${MATTERMOST_DB_PASSWORD}@mattermost-db:5432/mattermost?sslmode=disable&connect_timeout=10
+      - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
+      - MM_SERVICESETTINGS_SITEURL=https://${MATTERMOST_DOMAIN}
+
+volumes:
+  mattermost_db_data:
+  mattermost_config_data:
+  mattermost_data:
+  mattermost_log_data:
+  mattermost_plugins_data:
+  mattermost_client_plugins_data:
+  mattermost_bleve_indexes_data:
+
+networks:
+  mattermost_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
