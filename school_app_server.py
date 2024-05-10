@@ -470,6 +470,88 @@ def load_basic_configuration():
         logger.debug('Could not find basic configuration file.')
 
 
+def evaluate_command(docker_clients, command, args):
+    """
+    Evaluates the given command and executes it. Can be called from the
+    commandline or as command from inside SchoolAppServer.
+    """
+    if command == 'status':
+        output_status(docker_clients)
+    elif command == 'start':
+        if args:
+            # TODO: Handle multiple given app names instead of just on app.
+            if args[0] in app_name_map:
+                start_app(docker_clients, args[0])
+            elif args[0] == 'all':
+                for app in app_name_map:
+                    start_app(docker_clients, app)
+            else:
+                print(HTML('<red>Given app not available!</red>'))
+        else:
+            results_array = checkboxlist_dialog(
+                title="Start apps", text="Which apps should be started?",
+                values=list(app_name_map.items())
+            ).run()
+            for app in results_array:
+                start_app(docker_clients, app)
+    elif command == 'stop':
+        if args:
+            if args[0] in app_name_map:
+                stop_app(docker_clients, args[0])
+            elif args[0] == 'all':
+                for app in app_name_map:
+                    stop_app(docker_clients, app)
+            else:
+                print(HTML('<red>Given app not available!</red>'))
+        else:
+            results_array = checkboxlist_dialog(
+                title="Stop apps", text="Which apps should be stopped?",
+                values=list(app_name_map.items())
+            ).run()
+            for app in results_array:
+                stop_app(docker_clients, app)
+    elif command == 'pull':
+        if args:
+            if args[0] in app_name_map:
+                pull_app(docker_clients, args[0])
+            elif args[0] == 'all':
+                for app in app_name_map:
+                    pull_app(docker_clients, app)
+            else:
+                print(HTML('<red>Given app not available!</red>'))
+        else:
+            results_array = checkboxlist_dialog(
+                title="Pull apps", text="Which apps should be pulled?",
+                values=list(app_name_map.items())
+            ).run()
+            for app in results_array:
+                pull_app(docker_clients, app)
+    elif command == 'setup':
+        if args:
+            if args[0] in app_name_map:
+                do_initial_setup_for_app(args[0])
+            elif args[0] == 'all':
+                for app in app_name_map:
+                    do_initial_setup_for_app(app)
+            else:
+                print(HTML('<red>Given app not available!</red>'))
+        else:
+            if check_if_initial_setup_completed():
+                text = 'The initial basic setup has already been executed. Do you want to run it again?'
+                title_text = 'Run initial setup again?'
+            else:
+                text = 'Do you really want to run the initial basic setup?'
+                title_text = 'Run initial setup for all apps?'
+            do_run = yes_no_dialog(title=title_text, text=text).run()
+            if do_run:
+                do_initial_basic_setup()
+                load_basic_configuration()
+    elif command == 'help':
+        show_help_info()
+    else:
+        print(HTML('<red>Invalid command!</red>'))
+
+
 def main():
     """Starts command line interface and waits for commands."""
     # prepare session
@@ -495,88 +577,14 @@ def main():
                 continue
             user_input = user_input.split()
             command, args = user_input[0], user_input[1:]
+            if command in ('exit', 'quit'):
+                return
+            if command != 'setup' and not check_if_initial_setup_completed():
+                print('Please start initial setup first by entering the command "setup"!')
+                continue
+            evaluate_command(docker_clients, command, args)
         except KeyboardInterrupt:
             return
-        if command in ('exit', 'quit'):
-            return
-        if command != 'setup' and not check_if_initial_setup_completed():
-            print('Please start initial setup first by entering the command "setup"!')
-            continue
-        if command == 'status':
-            output_status(docker_clients)
-        elif command == 'start':
-            if args:
-                # TODO: Handle multiple given app names instead of just on app.
-                if args[0] in app_name_map:
-                    start_app(docker_clients, args[0])
-                elif args[0] == 'all':
-                    for app in app_name_map:
-                        start_app(docker_clients, app)
-                else:
-                    print(HTML('<red>Given app not available!</red>'))
-            else:
-                results_array = checkboxlist_dialog(
-                    title="Start apps", text="Which apps should be started?",
-                    values=list(app_name_map.items())
-                ).run()
-                for app in results_array:
-                    start_app(docker_clients, app)
-        elif command == 'stop':
-            if args:
-                if args[0] in app_name_map:
-                    stop_app(docker_clients, args[0])
-                elif args[0] == 'all':
-                    for app in app_name_map:
-                        stop_app(docker_clients, app)
-                else:
-                    print(HTML('<red>Given app not available!</red>'))
-            else:
-                results_array = checkboxlist_dialog(
-                    title="Stop apps", text="Which apps should be stopped?",
-                    values=list(app_name_map.items())
-                ).run()
-                for app in results_array:
-                    stop_app(docker_clients, app)
-        elif command == 'pull':
-            if args:
-                if args[0] in app_name_map:
-                    pull_app(docker_clients, args[0])
-                elif args[0] == 'all':
-                    for app in app_name_map:
-                        pull_app(docker_clients, app)
-                else:
-                    print(HTML('<red>Given app not available!</red>'))
-            else:
-                results_array = checkboxlist_dialog(
-                    title="Pull apps", text="Which apps should be pulled?",
-                    values=list(app_name_map.items())
-                ).run()
-                for app in results_array:
-                    pull_app(docker_clients, app)
-        elif command == 'setup':
-            if args:
-                if args[0] in app_name_map:
-                    do_initial_setup_for_app(args[0])
-                elif args[0] == 'all':
-                    for app in app_name_map:
-                        do_initial_setup_for_app(app)
-                else:
-                    print(HTML('<red>Given app not available!</red>'))
-            else:
-                if check_if_initial_setup_completed():
-                    text = 'The initial basic setup has already been executed. Do you want to run it again?'
-                    title_text = 'Run initial setup again?'
-                else:
-                    text = 'Do you really want to run the initial basic setup?'
-                    title_text = 'Run initial setup for all apps?'
-                do_run = yes_no_dialog(title=title_text, text=text).run()
-                if do_run:
-                    do_initial_basic_setup()
-                    load_basic_configuration()
-        elif command == 'help':
-            show_help_info()
-        else:
-            print(HTML('<red>Invalid command!</red>'))
 
 
 if __name__ == '__main__':
