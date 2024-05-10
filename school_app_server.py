@@ -382,7 +382,11 @@ def do_initial_setup_for_app(given_app):
         parameter_names = set(parameter_names)
         parameter_names.remove('domain')
         for p in parameter_names:
-            parameters[p] = prompt(f'Please enter parameter "{p}": ')
+            if 'password' in p or 'token' in p:
+                print('This seems to be a password or token, so a random secure value is suggested.')
+                parameters[p] = prompt(f'Please enter parameter "{p}": ', default=create_password())
+            else:
+                parameters[p] = prompt(f'Please enter parameter "{p}": ')
         filename = Path(app, '.env')
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:
