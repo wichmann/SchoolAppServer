@@ -5,3 +5,4 @@ school/
 *.log
 .initialized
 */.initialized
+.schoolappserver_history

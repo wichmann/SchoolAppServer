@@ -39,6 +39,7 @@ from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.validation import Validator
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.styles import Style
 from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
 from prompt_toolkit.key_binding import KeyBindings
@@ -168,14 +169,16 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
                 'tools': 'Tools (Stirling PDF)', 'moodle': 'Moodle - Open Source Learning Management System',
-                'static': 'Landing Pages (Heimdall, Homer)',
                 'etherpad': 'Etherpad - Real-time collaborative editor for the web',
-                'hedgedoc': 'Hedgedoc Markdown Editor', 'drawio': 'draw.io', 'onlyoffice': 'OnlyOffice',
-                'jenkins': 'Jenkins CI', 'gitea': 'Gitea - Open Source Self-Hosted Git Service',
-                'wekan': 'WeKan - Open-Source Kanban',
+                'hedgedoc': 'HedgeDoc - An open-source, web-based, self-hosted, collaborative markdown editor',
+                'onlyoffice': 'OnlyOffice - A free and open source office and productivity suite',
+                'drawio': 'draw.io - Web-based application for creating diagrams and flowcharts',
+                'jenkins': 'Jenkins - An open source automation server for CI/CD',
+                'gitea': 'Gitea - Open Source Self-Hosted Git Service', 'wekan': 'WeKan - Open-Source Kanban',
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
-                'jupyter-lab': 'Jupyter Notebook Scientific Python Stack'}
+                'jupyter-lab': 'Jupyter Notebook Scientific Python Stack',
+                'static': 'Landing Pages (Heimdall, Homer)'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'tools': TOOLS_ENV, 'moodle': MOODLE_ENV, 'static': STATIC_ENV, 'etherpad': ETHERPAD_ENV,
@@ -233,11 +236,13 @@ def prepare_cli_interface():
         'status': None,
         'exit': None,
     })
+    command_history = FileHistory(".schoolappserver_history")
     toolbar_text = '<b>Commands:</b>  -  '
     toolbar_text += 'start [app] - stop [app] - pull [app] - status - setup [app] - help - exit - ctrl+c to quit'
     toolbar_text = HTML(toolbar_text)
     session = PromptSession(auto_suggest=AutoSuggestFromHistory(), style=style, completer=completer,
-                            key_bindings=bindings, bottom_toolbar=toolbar_text, complete_while_typing=True)
+                            history=command_history, key_bindings=bindings, bottom_toolbar=toolbar_text,
+                            complete_while_typing=True)
     return session
 
 
@@ -455,7 +460,7 @@ def show_help_info():
     print(HTML('<orange>stop [app]</orange>  - Stop one or all Docker Compose stack.'))
     print(HTML('<orange>pull [app]</orange>  - Stop one or all Docker Compose stack.'))
     print(HTML('<orange>status</orange>      - Show status of all Docker Compose stacks.'))
-    print(HTML('<orange>setup</orange>       - Execute initial set up of configuration files.'))
+    print(HTML('<orange>setup [app]</orange> - Execute initial set up of configuration files.'))
     print(HTML('<orange>help</orange>        - Show this list of commands.'))
     print(HTML('<orange>exit</orange>        - Exit the programm.'))
 
@@ -546,8 +551,6 @@ def evaluate_command(docker_clients, command, args):
             if do_run:
                 do_initial_basic_setup()
                 load_basic_configuration()
-    elif command == 'help':
-        show_help_info()
     else:
         print(HTML('<red>Invalid command!</red>'))
 
@@ -579,10 +582,12 @@ def main():
             command, args = user_input[0], user_input[1:]
             if command in ('exit', 'quit'):
                 return
-            if command != 'setup' and not check_if_initial_setup_completed():
+            if command == 'help':
+                show_help_info()
+            elif command != 'setup' and not check_if_initial_setup_completed():
                 print('Please start initial setup first by entering the command "setup"!')
-                continue
-            evaluate_command(docker_clients, command, args)
+            else:
+                evaluate_command(docker_clients, command, args)
         except KeyboardInterrupt:
             return
 

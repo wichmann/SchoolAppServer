@@ -8,21 +8,21 @@ proxy. Docker images will be automatically updated by Watchtower.
 
 It provides Docker stacks containing the following services:
 
-* Traefik
-* Portainer
-* Watchtower
-* Uptime Kuma
+* Traefik - Cloud Native Application Proxy
+* Portainer - Web-based container management software
+* Watchtower - A solution for automating Docker container base image updates
+* Uptime Kuma - A fancy self-hosted monitoring tool
 * Nextcloud - Self hosted open source cloud file storage
 * Moodle - Open Source Learning Management System
 * Kanboard - Free and open source Kanban project management software
-* Jenkins CI
+* Jenkins - An open source automation server for CI/CD
 * Gitea - Open Source Self-Hosted Git Service
 * Etherpad - Real-time collaborative editor for the web
-* Hedgedoc Markdown Editor
-* draw.io
+* HedgeDoc - An open-source, web-based, self-hosted, collaborative markdown editor
+* draw.io - Web-based application for creating diagrams and flowcharts
 * WeKan - Open-Source Kanban
 * Jupyter Notebook Scientific Python Stack
-* OnlyOffice
+* OnlyOffice - A free and open source office and productivity suite
 * StirlingPDF
 * Homer
 * Heimdall
@@ -84,3 +84,5 @@ other apps:
 
 * Traefik: https://traefik.io/traefik/
 * Watchtower: https://containrrr.dev/watchtower/
+* Uptime Kuma: https://github.com/louislam/uptime-kuma
+* Portainer: https://www.portainer.io/
