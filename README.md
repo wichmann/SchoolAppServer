@@ -22,6 +22,7 @@ It provides Docker stacks containing the following services:
 * draw.io - Web-based application for creating diagrams and flowcharts
 * WeKan - Open-Source Kanban
 * Jupyter Notebook Scientific Python Stack
+* Node-RED - Low-code programming for event-driven applications
 * OnlyOffice - A free and open source office and productivity suite
 * Collabora Online Development Edition - A online office suite
 * StirlingPDF - Web-based PDF manipulation tool

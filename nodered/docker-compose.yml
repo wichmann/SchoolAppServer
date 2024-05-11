@@ -1,0 +1,27 @@
+services:
+  node-red:
+    image: ${NODE_RED_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.node-red.loadbalancer.server.port=1880"
+      - "traefik.http.routers.node-red.rule=Host(`${NODE_RED_DOMAIN}`)"
+      - "traefik.http.routers.node-red.tls=true"
+      - "traefik.http.routers.node-red.tls.certresolver=letsencrypt"
+    volumes:
+      - ./settings.js:/data/settings.js
+      - node_red_data:/data
+    networks:
+      - nodered_net
+    environment:
+      - TZ=Europe/Berlin
+      - NODE_RED_ADMIN_PASSWORD="${NODE_RED_ADMIN_PASSWORD}"
+
+volumes:
+  node_red_data:
+
+networks:
+  nodered_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true

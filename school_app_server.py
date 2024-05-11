@@ -182,28 +182,38 @@ MATTERMOST_DB_PASSWORD={mattermost_db_password}
 MATTERMOST_IMAGE=mattermost/mattermost-team-edition:release-9
 """
 
+STREAMPIPES_ENV = """
+"""
+
+NODERED_ENV= """NODE_RED_IMAGE=nodered/node-red:latest
+NODE_RED_DOMAIN=nodered.{domain}
+NODE_RED_ADMIN_PASSWORD={nodered_admin_password}
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
-                'tools': 'Tools (Stirling PDF)', 'moodle': 'Moodle - Open Source Learning Management System',
+                'moodle': 'Moodle - Open Source Learning Management System',
                 'etherpad': 'Etherpad - Real-time collaborative editor for the web',
                 'hedgedoc': 'HedgeDoc - An open-source, web-based, self-hosted, collaborative markdown editor',
-                'onlyoffice': 'OnlyOffice - A free and open source office and productivity suite',
                 'drawio': 'draw.io - Web-based application for creating diagrams and flowcharts',
                 'jenkins': 'Jenkins - An open source automation server for CI/CD',
                 'gitea': 'Gitea - Open Source Self-Hosted Git Service', 'wekan': 'WeKan - Open-Source Kanban',
-                'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)',
-                'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'jupyter-lab': 'Jupyter Notebook Scientific Python Stack',
+                'node-red': 'Node-RED - Low-code programming for event-driven applications',
                 'collabora': 'Collabora Online Development Edition - A online office suite',
+                'onlyoffice': 'OnlyOffice - A free and open source office and productivity suite',
                 'mattermost': 'Mattermost - Open-source, self-hostable online chat service with file sharing',
-                'static': 'Landing Pages (Heimdall, Homer)'}
+                'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
+                'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
+                'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
 
 app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
                'moodle': MOODLE_ENV, 'etherpad': ETHERPAD_ENV, 'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV,
-               'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV, 'mattermost': MATTERMOST_ENV,
-               'tools': TOOLS_ENV, 'static': STATIC_ENV, 'opencart': OPENCART_ENV, 'phpmyadmin': PHPMYADMIN_ENV}
+               'node-red': NODERED_ENV, 'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV,
+               'mattermost': MATTERMOST_ENV, 'tools': TOOLS_ENV, 'static': STATIC_ENV, 'opencart': OPENCART_ENV,
+               'phpmyadmin': PHPMYADMIN_ENV, 'streampipes': STREAMPIPES_ENV}
 
 basic_configuration = {}
 
@@ -588,7 +598,7 @@ def main():
     # prepare instances of Docker client
     # (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
     docker_clients = {}
-    for app, _ in app_var_map.items():
+    for app, _ in app_name_map.items():
         docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
         docker_clients[app] = docker
     load_basic_configuration()
