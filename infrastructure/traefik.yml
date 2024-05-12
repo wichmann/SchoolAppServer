@@ -1,6 +1,6 @@
 ################################################################
 #
-# Configuration file for Traefik v2 [CW 20240428]
+# Configuration file for Traefik v3
 #
 ################################################################
 
@@ -25,6 +25,7 @@ entryPoints:
           to: websecure
   websecure:
     address: :443
+    http3: {}
 
 ################################################################
 # Traefik logs configuration

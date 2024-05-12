@@ -6,7 +6,12 @@ services:
     restart: always
     ports:
       - "80:80"
-      - "443:443"
+      # open ports for TCP and UDP to allow HTTP/3 via QUIC
+      - "443:443/tcp"
+      - "443:443/udp"
+      # ideally the domain should have a HTTPS DNS record to allow clients to
+      # directly connect over QUIC without establishing a TCP connection first:
+      # example.com 3600 IN HTTPS 1 . alpn="h3,h2" ipv4hint="192.0.2.42" ipv6hint="2001:db8::42"
     labels:
       - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`) && ( PathPrefix(`/api`) || PathPrefix(`/dashboard`) || PathPrefix(`/metrics`) )"
       - "traefik.http.routers.dashboard.service=api@internal"
