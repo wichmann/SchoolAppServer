@@ -422,6 +422,7 @@ def do_initial_basic_setup():
     # write basic configuration to file
     with open(Path(INITIAL_SETUP_MARKER_FILE), 'w', encoding='utf-8') as f:
         f.write(f'mail-address = "{mail_address}"\ndomain-name = "{domain_name}"\n')
+        logger.debug('Writing basic configuration to file: %s', INITIAL_SETUP_MARKER_FILE)
     # set correct file permissions for acme.json in app 'infrastructure'
     os.chmod(Path('infrastructure') / 'acme.json', 0o600)
 
@@ -453,6 +454,7 @@ def do_initial_setup_for_app(given_app):
                 # write hashed password to .env file and put single quotation marks around it
                 parameters[p] = f"'{generate_argon_password_hash(parameters[p])}'"
         filename = Path(app, '.env')
+        print(f'Writing environment variables to file: {filename}')
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(env_vars.format(**parameters))
