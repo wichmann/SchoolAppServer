@@ -26,8 +26,9 @@ It provides Docker stacks containing the following services:
 * OnlyOffice - A free and open source office and productivity suite
 * Collabora Online Development Edition - A online office suite
 * StirlingPDF - Web-based PDF manipulation tool
-* Homer
-* Heimdall
+* Vaultwarden - Community driven web-based Bitwarden compatible password manager server
+* Homer - A very simple static homepage for your server
+* Heimdall - An Application dashboard and launcher
 
 ![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
 
@@ -90,6 +91,7 @@ other apps:
 * pyyaml
 * bcrypt
 * tomli (fallback for Python versions older than 3.11)
+* argon2-cffi
 
 ## Links
 

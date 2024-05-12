@@ -9,6 +9,7 @@ prompt-toolkit = "*"
 pyyaml = "*"
 bcrypt = "*"
 tomli = "*"
+argon2-cffi = "*"
 
 [dev-packages]
 

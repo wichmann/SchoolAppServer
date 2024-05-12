@@ -38,6 +38,7 @@ python_print = print
 
 import yaml
 import bcrypt
+from argon2 import PasswordHasher
 from prompt_toolkit import PromptSession, prompt, HTML
 from prompt_toolkit import print_formatted_text as print
 from prompt_toolkit.validation import Validator
@@ -190,6 +191,15 @@ NODE_RED_DOMAIN=nodered.{domain}
 NODE_RED_ADMIN_PASSWORD={nodered_admin_password}
 """
 
+VAULTWARDEN_ENV = """VAULTWARDEN_IMAGE=vaultwarden/server:latest
+VAULTWARDEN_DOMAIN=vaultwarden.{domain}
+VAULTWARDEN_ADMIN_TOKEN={vaultwarden_admin_token}
+VAULTWARDEN_SMTP_USER={vaultwarden_smtp_user}
+VAULTWARDEN_SMTP_PORT=465
+VAULTWARDEN_SMTP_ADDR={vaultwarden_smtp_addr}
+VAULTWARDEN_SMTP_PASSWORD={vaultwarden_smtp_password}
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
@@ -204,6 +214,7 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'collabora': 'Collabora Online Development Edition - A online office suite',
                 'onlyoffice': 'OnlyOffice - A free and open source office and productivity suite',
                 'mattermost': 'Mattermost - Open-source, self-hostable online chat service with file sharing',
+                'vaultwarden': 'Vaultwarden - Community driven web-based Bitwarden compatible password manager server',
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
@@ -213,7 +224,7 @@ app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV,
                'node-red': NODERED_ENV, 'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV,
                'mattermost': MATTERMOST_ENV, 'tools': TOOLS_ENV, 'static': STATIC_ENV, 'opencart': OPENCART_ENV,
-               'phpmyadmin': PHPMYADMIN_ENV, 'streampipes': STREAMPIPES_ENV}
+               'phpmyadmin': PHPMYADMIN_ENV, 'streampipes': STREAMPIPES_ENV, 'vaultwarden': VAULTWARDEN_ENV}
 
 basic_configuration = {}
 
@@ -315,6 +326,21 @@ def generate_htpasswd_bcrypt(username, password):
     # generating on command line: printf "admin:$(openssl passwd -apr1 {chosen_password})\n" > traefik_dashboard_auth
     bcrypted = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
     return f'{username}:{bcrypted}'
+
+
+def generate_argon_password_hash(password):
+    """
+    Generate a hashed password with argon2 in PHC string format used by Vaultwarden for example.
+
+    Sources:
+     - https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token 
+     - https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md
+
+    The gennerated hash should look like this:
+    $argon2id$v=19$m=65540,t=3,p=4$bXBGMENBZUVzT3VUSFErTzQzK25Jck1BN2Z0amFuWjdSdVlIQVZqYzAzYz0$T9m73OdD...
+    """
+    ph = PasswordHasher(time_cost=3, memory_cost=65540, parallelism=4, hash_len=32, salt_len=32)
+    return ph.hash(password)
 
 
 def create_secret_files(given_app):
@@ -422,6 +448,10 @@ def do_initial_setup_for_app(given_app):
                 parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
             else:
                 parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
+            if 'vaultwarden_admin_token' == p:
+                print(f'Generating argon2 password hash for password {parameters[p]}.')
+                # write hashed password to .env file and put single quotation marks around it
+                parameters[p] = f"'{generate_argon_password_hash(parameters[p])}'"
         filename = Path(app, '.env')
         logger.debug('Writing env vars to file: %s', filename)
         with open(filename, 'w', encoding='utf-8') as f:
