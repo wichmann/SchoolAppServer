@@ -314,17 +314,17 @@ def do_initial_basic_setup():
 
 
 def generate_env_file_from_template(app):
-    """ 
+    """
     Generate a file with all environment variables from a template
     (.env.template) and fill in all missing element, like specific domain
     names, passwords, SMTP parameters, etc.
     """
     parameters = {}
-    # find all env variables that contain domain names and generate them 
+    # find all env variables that contain domain names and generate them
     with open(Path(app) / ENV_FILE_TEMPLATE_FILENAME, 'r', encoding='utf-8') as f:
         template = f.read()
     for line in template.strip().split('\n'):
-        var_name, value = line.split('=')
+        var_name, _ = line.split('=')
         if 'DOMAIN' in var_name:
             app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{basic_configuration["domain-name"]}'
             parameters['domain'] = app_domain_name
