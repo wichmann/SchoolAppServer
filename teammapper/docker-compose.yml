@@ -1,0 +1,57 @@
+services:
+  teammapper:
+    image: ${TEAMMAPPER_IMAGE}
+    depends_on:
+      - teammapper-db
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.teammapper.loadbalancer.server.port=3000"
+      - "traefik.http.routers.teammapper.rule=Host(`${TEAMMAPPER_DOMAIN}`)"
+      - "traefik.http.routers.teammapper.tls=true"
+      - "traefik.http.routers.teammapper.tls.certresolver=letsencrypt"
+    environment:
+      - MODE=PROD
+      - BINDING="0.0.0.0"
+      - POSTGRES_DATABASE=teammapper
+      - POSTGRES_HOST=teammapper-db
+      - POSTGRES_PASSWORD=/run/secrets/teammapper_db_password
+      - POSTGRES_PORT=5432
+      - POSTGRES_SSL=false
+      - POSTGRES_SSL_REJECT_UNAUTHORIZED=false
+      - POSTGRES_USER=teammapper
+      - POSTGRES_QUERY_TIMEOUT=100000
+      - POSTGRES_STATEMENT_TIMEOUT=100000
+      - DELETE_AFTER_DAYS=30
+    networks:
+      - teammapper_net
+    secrets:
+      - teammapper_db_password
+
+  teammapper-db:
+    image: ${TEAMMAPPER_DB_IMAGE}
+    restart: always
+    environment:
+      - POSTGRES_DB=teammapper
+      - POSTGRES_PASSWORD=/run/secrets/teammapper_db_password
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=teammapper
+    volumes:
+      - teammapper_db_data:/var/lib/postgresql/data
+    networks:
+      - teammapper_net
+    secrets:
+      - teammapper_db_password
+
+volumes:
+  teammapper_db_data:
+
+networks:
+  teammapper_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  teammapper_db_password:
+    file: teammapper_db_password.txt

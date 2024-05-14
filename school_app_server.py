@@ -200,6 +200,11 @@ VAULTWARDEN_SMTP_ADDR={vaultwarden_smtp_addr}
 VAULTWARDEN_SMTP_PASSWORD={vaultwarden_smtp_password}
 """
 
+TEAMMAPPER_ENV = """TEAMMAPPER_IMAGE=ghcr.io/b310-digital/teammapper:latest
+TEAMMAPPER_DB_IMAGE=postgres:15-alpine
+TEAMMAPPER_DOMAIN=teammapper.{domain}
+"""
+
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
@@ -213,6 +218,7 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'node-red': 'Node-RED - Low-code programming for event-driven applications',
                 'collabora': 'Collabora Online Development Edition - A online office suite',
                 'onlyoffice': 'OnlyOffice - A free and open source office and productivity suite',
+                'teammapper': 'Online tool to create and collaborate on mindmaps',
                 'mattermost': 'Mattermost - Open-source, self-hostable online chat service with file sharing',
                 'vaultwarden': 'Vaultwarden - Community driven web-based Bitwarden compatible password manager server',
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
@@ -223,8 +229,9 @@ app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV,
                'moodle': MOODLE_ENV, 'etherpad': ETHERPAD_ENV, 'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV,
                'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV,
                'node-red': NODERED_ENV, 'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV,
-               'mattermost': MATTERMOST_ENV, 'tools': TOOLS_ENV, 'static': STATIC_ENV, 'opencart': OPENCART_ENV,
-               'phpmyadmin': PHPMYADMIN_ENV, 'streampipes': STREAMPIPES_ENV, 'vaultwarden': VAULTWARDEN_ENV}
+               'teammapper': TEAMMAPPER_ENV, 'mattermost': MATTERMOST_ENV, 'tools': TOOLS_ENV,
+               'static': STATIC_ENV, 'opencart': OPENCART_ENV, 'phpmyadmin': PHPMYADMIN_ENV,
+               'streampipes': STREAMPIPES_ENV, 'vaultwarden': VAULTWARDEN_ENV}
 
 basic_configuration = {}
 

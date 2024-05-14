@@ -25,6 +25,7 @@ It provides Docker stacks containing the following services:
 * Node-RED - Low-code programming for event-driven applications
 * OnlyOffice - A free and open source office and productivity suite
 * Collabora Online Development Edition - A online office suite
+* TeamMapper - Online tool to create and collaborate on mindmaps
 * StirlingPDF - Web-based PDF manipulation tool
 * Vaultwarden - Community driven web-based Bitwarden compatible password manager server
 * Homer - A very simple static homepage for your server
