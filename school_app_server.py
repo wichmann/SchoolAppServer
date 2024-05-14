@@ -56,154 +56,41 @@ from python_on_whales import DockerClient
 logger = logging.getLogger('school_app_server')
 
 APP = 'SchoolAppServer'
-VERSION = '1.0'
+VERSION = '2.0'
 INITIAL_SETUP_MARKER_FILE = '.initialized'
+ENV_FILE_TEMPLATE_FILENAME = '.env.template'
+EXAMPLE_MAIL_PLACEHOLDER = 'mail@example.com'
 
-INFRASTRUCTURE_ENV = """UPTIMEKUMA_IMAGE=louislam/uptime-kuma:1
-UPTIMEKUMA_DOMAIN=status.{domain}
-TRAEFIK_IMAGE=traefik:v3.0
-TRAEFIK_DASHBOARD_DOMAIN=dashboard.{domain}
-TRAEFIK_METRICS_DOMAIN=metrics.{domain}
-PORTAINER_IMAGE=portainer/portainer-ce:latest
-PORTAINER_DOMAIN=portainer.{domain}
-WATCHTOWER_IMAGE=containrrr/watchtower:latest
-"""
-
-NEXTCLOUD_ENV = """NEXTCLOUD_IMAGE=nextcloud:27.1-apache
-NEXTCLOUD_DOMAIN=nextcloud.{domain}
-NEXTCLOUD_DB_IMAGE=mariadb:10.6
-NEXTCLOUD_REDIS_IMAGE=redis:latest
-NEXTCLOUD_SMTP_ADDR={nextcloud_smtp_addr}
-NEXTCLOUD_SMTP_USER={nextcloud_smtp_user}
-NEXTCLOUD_SMTP_PORT=465
-"""
-
-KANBOARD_ENV = """KANBOARD_IMAGE=kanboard/kanboard:v1.2.36
-KANBOARD_DOMAIN=kanboard.{domain}
-KANBOARD_SMTP_ADDR={kanboard_smtp_addr}
-KANBOARD_SMTP_PORT=465
-KANBOARD_SMTP_USER={kanboard_smtp_user}
-"""
-
-TOOLS_ENV = """STIRLINGPDF_IMAGE=frooodle/s-pdf:latest
-STIRLINGPDF_DOMAIN=pdf.{domain}
-"""
-
-MOODLE_ENV = """MOODLE_IMAGE=bitnami/moodle:latest
-MOODLE_DOMAIN1=moodle.{domain}
-MOODLE_DOMAIN2=moodle2.{domain}
-MOODLE_DB_IMAGE=mariadb:latest
-MOODLE_SMTP_ADDR={moodle_smtp_addr}
-MOODLE_SMTP_PORT=465
-MOODLE_SMTP_USER={moodle_smtp_user}
-MOODLE_ADMIN_EMAIL={moodle_admin_mail_address}
-MOODLE_ADMIN_PASSWORD={moodle_admin_password}
-MOODLE_SITE_NAME={moodle_site_name}
-"""
-
-STATIC_ENV = """
-HEIMDALL_IMAGE=linuxserver/heimdall:latest
-HEIMDALL_DOMAIN=www.{domain}
-HOMER_IMAGE=b4bz/homer:latest
-HOMER_DOMAIN=homer.{domain}
-DEFAULTPAGE_IMAGE=nginx:latest
-DEFAULTPAGE_DOMAIN=static.{domain}
-"""
-
-ETHERPAD_ENV = """ETHERPAD_IMAGE=etherpad/etherpad:1.9
-ETHERPAD_DOMAIN=pad.{domain}
-ETHERPAD_DB_IMAGE=postgres:16-alpine
-"""
-
-HEDGEDOC_ENV = """HEDGEDOC_IMAGE=quay.io/hedgedoc/hedgedoc:latest
-HEDGEDOC_DOMAIN=md.{domain}
-HEDGEDOC_DB_IMAGE=postgres:16-alpine
-"""
-
-DRAWIO_ENV = """DRAWIO_IMAGE=jgraph/drawio:latest
-DRAWIO_DOMAIN=draw.{domain}
-"""
-
-ONLYOFFICE_ENV = """ONLYOFFICE_IMAGE=onlyoffice/documentserver:latest
-ONLYOFFICE_DOMAIN=onlyoffice.{domain}
-"""
-
-JENKINS_ENV = """JENKINS_IMAGE=jenkins/jenkins:lts-jdk17
-JENKINS_DOMAIN=jenkins.{domain}
-"""
-
-GITEA_ENV = """GITEA_DB_IMAGE=postgres:16
-GITEA_IMAGE=gitea/gitea:latest
-GITEA_DOMAIN=git.{domain}
-GITEA_SMTP_ADDR={gitea_smtp_addr}
-GITEA_SMTP_PORT=465
-GITEA_SMTP_USER={gitea_smtp_user}
-"""
-
-WEKAN_ENV = """WEKAN_DB_IMAGE=mongo:6
-WEKAN_IMAGE=wekanteam/wekan:latest
-WEKAN_DOMAIN=wekan.{domain}
-WEKAN_SMTP_USER={wekan_smtp_user}
-WEKAN_SMTP_ADDR={wekan_smtp_addr}
-WEKAN_SMTP_PASSWORD={wekan_smtp_password}
-WEKAN_SMTP_PORT=465
-"""
-
-OPENCART_ENV = """OPENCART_DB_IMAGE=mariadb:10
-OPENCART_IMAGE=bitnami/opencart:4
-OPENCART_DOMAIN=opencart.{domain}
-OPENCART_EMAIL={opencart_email}
-OPENCART_ADMIN_PASSWORD={opencart_admin_password}
-OPENCART_SMTP_USER={opencart_smtp_user}
-OPENCART_SMTP_ADDR={opencart_smtp_addr}
-OPENCART_SMTP_PORT=465
-"""
-
-PHPMYADMIN_ENV = """PHPMYADMIN_DB_IMAGE=mariadb:latest
-PHPMYADMIN_DOMAIN=phpmyadmin.{domain}
-PHPMYADMIN_IMAGE=phpmyadmin:latest
-"""
-
-JUPYTER_LAB_ENV = """JUPYTER_IMAGE=quay.io/jupyter/scipy-notebook:latest
-JUPYTER_DOMAIN=jupyter.{domain}
-ADMIN_TOKEN={jupyter_admin_token}
-ADMIN_PASSWORD={jupyter_admin_password}
-"""
-
-COLLABORA_ENV = """COLLABORA_IMAGE=collabora/code:latest
-COLLABORA_DOMAIN=collabora.{domain}
-COLLABORA_NEXTCLOUD_DOMAIN=nextcloud.{domain}
-COLLABORA_USERNAME={collabora_username}
-COLLABORA_PASSWORD={collabora_password}
-"""
-
-MATTERMOST_ENV = """MATTERMOST_DOMAIN=mm.{domain}
-MATTERMOST_DB_IMAGE=postgres:13-alpine
-MATTERMOST_DB_PASSWORD={mattermost_db_password}
-MATTERMOST_IMAGE=mattermost/mattermost-team-edition:release-9
-"""
-
-STREAMPIPES_ENV = """
-"""
-
-NODERED_ENV= """NODE_RED_IMAGE=nodered/node-red:latest
-NODE_RED_DOMAIN=nodered.{domain}
-NODE_RED_ADMIN_PASSWORD={nodered_admin_password}
-"""
-
-VAULTWARDEN_ENV = """VAULTWARDEN_IMAGE=vaultwarden/server:latest
-VAULTWARDEN_DOMAIN=vaultwarden.{domain}
-VAULTWARDEN_ADMIN_TOKEN={vaultwarden_admin_token}
-VAULTWARDEN_SMTP_USER={vaultwarden_smtp_user}
-VAULTWARDEN_SMTP_PORT=465
-VAULTWARDEN_SMTP_ADDR={vaultwarden_smtp_addr}
-VAULTWARDEN_SMTP_PASSWORD={vaultwarden_smtp_password}
-"""
-
-TEAMMAPPER_ENV = """TEAMMAPPER_IMAGE=ghcr.io/b310-digital/teammapper:latest
-TEAMMAPPER_DB_IMAGE=postgres:15-alpine
-TEAMMAPPER_DOMAIN=teammapper.{domain}
-"""
+SUBDOMAIN_MAP = {
+    'UPTIMEKUMA_DOMAIN': 'status',
+    'TRAEFIK_DASHBOARD_DOMAIN': 'dashboard',
+    'TRAEFIK_METRICS_DOMAIN': 'metrics',
+    'PORTAINER_DOMAIN': 'portainer',
+    'NEXTCLOUD_DOMAIN': 'nextcloud',
+    'KANBOARD_DOMAIN': 'kanboard',
+    'STIRLINGPDF_DOMAIN': 'pdf',
+    'MOODLE_DOMAIN1': 'moodle',
+    'MOODLE_DOMAIN2': 'moodle2',
+    'HEIMDALL_DOMAIN': 'www',
+    'HOMER_DOMAIN': 'homer',
+    'DEFAULTPAGE_DOMAIN': 'static',
+    'ETHERPAD_DOMAIN': 'pad',
+    'HEDGEDOC_DOMAIN': 'md',
+    'DRAWIO_DOMAIN': 'draw',
+    'ONLYOFFICE_DOMAIN': 'onlyoffice',
+    'JENKINS_DOMAIN': 'jenkins',
+    'GITEA_DOMAIN': 'git',
+    'WEKAN_DOMAIN': 'wekan',
+    'OPENCART_DOMAIN': 'opencart',
+    'PHPMYADMIN_DOMAIN': 'phpmyadmin',
+    'JUPYTER_DOMAIN': 'jupyter',
+    'COLLABORA_DOMAIN': 'collabora',
+    'COLLABORA_NEXTCLOUD_DOMAIN': 'nextcloud',
+    'MATTERMOST_DOMAIN': 'mm',
+    'NODE_RED_DOMAIN': 'nodered',
+    'VAULTWARDEN_DOMAIN': 'vaultwarden',
+    'TEAMMAPPER_DOMAIN': 'teammapper',
+}
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
@@ -224,14 +111,6 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
-
-app_var_map = {'infrastructure': INFRASTRUCTURE_ENV, 'nextcloud': NEXTCLOUD_ENV, 'kanboard': KANBOARD_ENV,
-               'moodle': MOODLE_ENV, 'etherpad': ETHERPAD_ENV, 'hedgedoc': HEDGEDOC_ENV, 'drawio': DRAWIO_ENV,
-               'jenkins': JENKINS_ENV, 'gitea': GITEA_ENV, 'wekan': WEKAN_ENV, 'jupyter-lab': JUPYTER_LAB_ENV,
-               'node-red': NODERED_ENV, 'collabora': COLLABORA_ENV, 'onlyoffice': ONLYOFFICE_ENV,
-               'teammapper': TEAMMAPPER_ENV, 'mattermost': MATTERMOST_ENV, 'tools': TOOLS_ENV,
-               'static': STATIC_ENV, 'opencart': OPENCART_ENV, 'phpmyadmin': PHPMYADMIN_ENV,
-               'streampipes': STREAMPIPES_ENV, 'vaultwarden': VAULTWARDEN_ENV}
 
 basic_configuration = {}
 
@@ -397,13 +276,12 @@ def replace_string_in_file(filename, old_string, new_string):
 
 def replace_mail_address_in_files(mail_address):
     """Replaces a given mail address in all configuration files."""
-    placeholder = 'mail@example.com'
     for path in Path('.').glob('*/*.yml'):
         if path.is_file():
             with open(path, 'r', encoding='utf-8') as file:
-                if placeholder in file.read():
+                if EXAMPLE_MAIL_PLACEHOLDER in file.read():
                     logger.debug('Found mail address to be replaced: %s', path)
-                    replace_string_in_file(path, placeholder, mail_address)
+                    replace_string_in_file(path, EXAMPLE_MAIL_PLACEHOLDER, mail_address)
 
 
 def do_initial_basic_setup():
@@ -430,43 +308,61 @@ def do_initial_basic_setup():
     with open(Path(INITIAL_SETUP_MARKER_FILE), 'w', encoding='utf-8') as f:
         f.write(f'mail-address = "{mail_address}"\ndomain-name = "{domain_name}"\n')
         logger.debug('Writing basic configuration to file: %s', INITIAL_SETUP_MARKER_FILE)
+    replace_mail_address_in_files(mail_address)
     # set correct file permissions for acme.json in app 'infrastructure'
     os.chmod(Path('infrastructure') / 'acme.json', 0o600)
 
 
+def generate_env_file_from_template(app):
+    """ 
+    Generate a file with all environment variables from a template
+    (.env.template) and fill in all missing element, like specific domain
+    names, passwords, SMTP parameters, etc.
+    """
+    parameters = {}
+    # find all env variables that contain domain names and generate them 
+    with open(Path(app) / ENV_FILE_TEMPLATE_FILENAME, 'r', encoding='utf-8') as f:
+        template = f.read()
+    for line in template.strip().split('\n'):
+        var_name, value = line.split('=')
+        if 'DOMAIN' in var_name:
+            app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{basic_configuration["domain-name"]}'
+            parameters['domain'] = app_domain_name
+    # get all placeholders that are not domain from string  (https://stackoverflow.com/a/14061832)
+    parameter_names = [name for text, name, spec, conv in string.Formatter().parse(template) if name is not None]
+    # filter missing parameters and input them from user
+    parameter_names = set(parameter_names)
+    parameter_names.remove('domain')
+    for p in parameter_names:
+        cleaned_up_p = p.replace('_', ' ')
+        if 'password' in p or 'token' in p:
+            print('This seems to be a password or token, so a random secure value is suggested.')
+            parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
+        else:
+            parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
+        if 'vaultwarden_admin_token' == p:
+            print(f'Generating argon2 password hash for password {parameters[p]}.')
+            # write hashed password to .env file and put single quotation marks around it
+            parameters[p] = f"'{generate_argon_password_hash(parameters[p])}'"
+    filename = Path(app, '.env')
+    print(f'Writing environment variables to file: {filename}')
+    logger.debug('Writing env vars to file: %s', filename)
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(template.format(**parameters))
+    # mark single app directories as initialized
+    (Path(app) / INITIAL_SETUP_MARKER_FILE).touch()
+
+
 def do_initial_setup_for_app(given_app):
-    """Initializes all environment variables and secret files for given app."""
+    """
+    Initializes all environment variables from a template file (.env.template)
+    and fill all missing element, like specific domain names, passwords, SMTP
+    parameters, etc. Also all necessary secret files will be created and filled
+    with a random and secure password.
+    """
     print(f' *** Initializing app configuration for {given_app} *** ')
     create_secret_files(given_app)
-    replace_mail_address_in_files(basic_configuration['mail-address'])
-    # handle environment variable files
-    for app, env_vars in app_var_map.items():
-        if app != given_app:
-            continue
-        parameters = {'domain': basic_configuration['domain-name']}
-        # get all placeholders from string  (https://stackoverflow.com/a/14061832)
-        parameter_names = [name for text, name, spec, conv in string.Formatter().parse(env_vars) if name is not None]
-        # filter missing parameters and input them from user
-        parameter_names = set(parameter_names)
-        parameter_names.remove('domain')
-        for p in parameter_names:
-            cleaned_up_p = p.replace('_', ' ')
-            if 'password' in p or 'token' in p:
-                print('This seems to be a password or token, so a random secure value is suggested.')
-                parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
-            else:
-                parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
-            if 'vaultwarden_admin_token' == p:
-                print(f'Generating argon2 password hash for password {parameters[p]}.')
-                # write hashed password to .env file and put single quotation marks around it
-                parameters[p] = f"'{generate_argon_password_hash(parameters[p])}'"
-        filename = Path(app, '.env')
-        print(f'Writing environment variables to file: {filename}')
-        logger.debug('Writing env vars to file: %s', filename)
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(env_vars.format(**parameters))
-        # mark single app directories as initialized
-        (Path(app) / INITIAL_SETUP_MARKER_FILE).touch()
+    generate_env_file_from_template(given_app)
 
 
 def output_status(docker_clients):
