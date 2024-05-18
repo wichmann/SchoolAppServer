@@ -1,0 +1,21 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+discovery.relabel "metrics_integrations_integrations_traefik" {
+	targets = [{
+		__address__ = "infrastructure-reverse-proxy-1:8080",
+	}]
+
+	rule {
+		target_label = "instance"
+		replacement  = constants.hostname
+	}
+}
+
+prometheus.scrape "metrics_integrations_integrations_traefik" {
+	targets    = discovery.relabel.metrics_integrations_integrations_traefik.output
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+	job_name   = "integrations/traefik"
+}
