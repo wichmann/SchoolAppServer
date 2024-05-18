@@ -10,6 +10,10 @@ pyyaml = "*"
 bcrypt = "*"
 tomli = "*"
 argon2-cffi = "*"
+prometheus-client = "*"
+influxdb3-python = "*"
+python-logging-loki = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

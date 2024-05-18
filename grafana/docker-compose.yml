@@ -1,0 +1,172 @@
+services:
+  grafana:
+    # Grafana - Create, explore, and share data through beautiful, flexible dashboards
+    # Access Grafana CLI by Docker commandline, e.g.:
+    #     docker compose -f grafana/docker-compose.yaml exec grafana grafana cli plugins update-all
+    image: ${GRAFANA_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)"     
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SERVER_ROOT_URL=https://${GRAFANA_DOMAIN}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    volumes:
+      - grafana_config:/etc/grafana-config
+      - ./grafana/config/grafana.ini:/etc/grafana-config/grafana.ini
+      - grafana_provisioning:/etc/grafana/provisioning
+      - ./grafana/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - grafana_storage:/var/lib/grafana
+      - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - observable_net
+
+  influxdb:
+    # InfluxDB - time series database
+    image: ${INFLUX_IMAGE}
+    restart: unless-stopped    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.influxdb.loadbalancer.server.port=8086"
+      - "traefik.http.routers.influxdb.rule=Host(`${INFLUX_DOMAIN}`)"
+      - "traefik.http.routers.influxdb.tls=true"
+      - "traefik.http.routers.influxdb.tls.certresolver=letsencrypt"
+    volumes:
+      #- influxdb_storage:/var/lib/influxdb
+      - influxdb_storage:/var/lib/influxdb2:rw
+      - influxdb_config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN}
+      - DOCKER_INFLUXDB_INIT_RETENTION=365d
+    networks:
+      - observable_net
+
+  telegraf:
+    # Telegraf is an agent for collecting, processing, aggregating, and writing metrics
+    image: telegraf:latest
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      # map /tmp to permanent storage (this includes /tmp/metrics.out)
+      - telegraf_data:/tmp:rw
+    environment: 
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN}
+    networks:
+      - observable_net
+
+  chronograf:
+    # Chronograf - admin UI for InfluxDB
+    image: ${CHRONOGRAF_IMAGE}
+    depends_on:
+      - influxdb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.chronograf.loadbalancer.server.port=8888"
+      - "traefik.http.routers.chronograf.rule=Host(`${CHRONOGRAF_DOMAIN}`)"
+      - "traefik.http.routers.chronograf.tls=true"
+      - "traefik.http.routers.chronograf.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.chronograf.middlewares=chronograf-auth"
+      - "traefik.http.middlewares.chronograf-auth.basicauth.usersfile=/run/secrets/chronograf_htpasswd_auth"
+    volumes:
+      - chronograf_storage:/var/lib/chronograf
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME=${INFLUXDB_USERNAME}
+      - INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD}
+    networks:
+      - observable_net
+    secrets:
+      - chronograf_htpasswd_auth
+      
+  prometheus:
+    # Prometheus collects metrics from configured targets at given intervals
+    # TODO: Build a scalable and long term storage for Prometheus with Grafana Mimir and Minio.
+    image: ${PROMETHEUS_IMAGE}
+    # run as root, update to rootless mode later
+    user: "0:0"
+    restart: unless-stopped
+    command:
+      #- --log.level=debug
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.size=256MB
+      - --enable-feature=remote-write-receiver
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_DOMAIN}`)"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_settings:/etc/prometheus/
+      - prometheus_data:/prometheus
+    networks:
+      - observable_net
+
+  loki:
+    # Loki - Cloud Native Log Aggregation by Grafana
+    image: ${LOKI_IMAGE}
+    #user: root
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yaml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+      - "traefik.http.routers.loki.rule=Host(`${LOKI_DOMAIN}`)"
+      - "traefik.http.routers.loki.tls=true"
+      - "traefik.http.routers.loki.tls.certresolver=letsencrypt"
+    volumes:
+      - ./loki/config/loki-config.yaml:/etc/loki/config.yaml
+      - loki_data:/loki
+    networks:
+      - observable_net
+
+volumes:
+  grafana_storage:
+  grafana_config:
+  grafana_provisioning:
+  
+  influxdb_storage:
+  influxdb_config:
+  chronograf_storage:
+  telegraf_data:
+
+  prometheus_settings:
+  prometheus_data:
+  
+  loki_data:
+
+networks:
+  observable_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  chronograf_htpasswd_auth:
+    file: chronograf_htpasswd_auth.txt

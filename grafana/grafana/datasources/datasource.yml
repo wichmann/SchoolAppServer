@@ -1,0 +1,63 @@
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+ - name: Prometheus
+   orgId: 1
+
+# list of datasources to insert/update into database
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    editable: true # TODO: Change this option to false, if all works well!
+    isDefault: false
+    uid: loki
+    version: 1
+    url: http://loki:3100
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+    secureJsonData:
+      httpHeaderValue1: "docker"
+    basicAuth: false
+    #basicAuthUser: loki
+    #basicAuthPassword: password
+
+  - name: Prometheus
+    type: prometheus
+    access: proxy # access mode. direct or proxy
+    editable: true
+    isDefault: false
+    uid: prometheus
+    version: 1
+    url: http://prometheus:9090
+    #password:
+    #user:
+    #database:
+    basicAuth: false
+    #basicAuthUser: prom
+    #basicAuthPassword: password
+    #withCredentials:
+    #jsonData:
+    #   graphiteVersion: "1.1"
+    #   tlsAuth: false
+    #   tlsAuthWithCACert: false
+
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    database: $INFLUXDB_DB
+    url: http://influxdb:8086
+    editable: true
+    isDefault: true
+    basicAuth: true
+    basicAuthUser: ${INFLUXDB_USERNAME}
+    basicAuthPassword: ${INFLUXDB_PASSWORD}
+    jsonData:
+      version: Flux
+      organization: ${INFLUXDB_INIT_ORG}
+      defaultBucket: ${INFLUXDB_INIT_BUCKET}
+      tlsSkipVerify: true
+    secureJsonData:
+      #password: ${INFLUXDB_PASSWORD}
+      token: ${INFLUXDB_INIT_ADMIN_TOKEN}

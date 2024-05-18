@@ -38,7 +38,9 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Berlin
-      #- PMA_PMADB=phpmyadmin
+      - PMA_PMADB=phpmyadmin
+      - PMA_USER=phpmyadmin
+      - PMA_PASSWORD_FILE=/run/secrets/phpmyadmin_db_password
     secrets:
       - phpmyadmin_db_password
 

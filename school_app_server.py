@@ -69,8 +69,7 @@ SUBDOMAIN_MAP = {
     'NEXTCLOUD_DOMAIN': 'nextcloud',
     'KANBOARD_DOMAIN': 'kanboard',
     'STIRLINGPDF_DOMAIN': 'pdf',
-    'MOODLE_DOMAIN1': 'moodle',
-    'MOODLE_DOMAIN2': 'moodle2',
+    'MOODLE_DOMAIN': 'moodle',
     'HEIMDALL_DOMAIN': 'www',
     'HOMER_DOMAIN': 'homer',
     'DEFAULTPAGE_DOMAIN': 'static',
@@ -90,9 +89,15 @@ SUBDOMAIN_MAP = {
     'NODE_RED_DOMAIN': 'nodered',
     'VAULTWARDEN_DOMAIN': 'vaultwarden',
     'TEAMMAPPER_DOMAIN': 'teammapper',
+    'GRAFANA_DOMAIN': 'grafana',
+    'INFLUX_DOMAIN': 'influx',
+    'CHRONOGRAF_DOMAIN': 'chronograf',
+    'PROMETHEUS_DOMAIN': 'prometheus',
+    'LOKI_DOMAIN': 'loki',
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
+                'grafana': 'Grafana - Create, explore, and share data through beautiful, flexible dashboards',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',
                 'moodle': 'Moodle - Open Source Learning Management System',
@@ -195,8 +200,7 @@ def find_all_secrets():
     for path in Path('.').glob('*/docker-compose.yml'):
         data = yaml.safe_load(path.open())
         if 'secrets' in data:
-            all_secrets.extend(
-                [(str(path.parent), data['secrets'][s]['file']) for s in data['secrets']])
+            all_secrets.extend([(str(path.parent), data['secrets'][s]['file']) for s in data['secrets']])
     return all_secrets
 
 
@@ -241,6 +245,12 @@ def create_secret_files(given_app):
         if 'dashboard_auth' in filename:
             chosen_password = create_password()
             print(f'Generated htpasswd password for Traefik Dashboard (user "admin"): {chosen_password}')
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(generate_htpasswd_bcrypt('admin', chosen_password))
+                logger.debug('Writing HTTP auth string to file: %s', filename)
+        elif 'chronograf_htpasswd_auth' in filename:
+            chosen_password = create_password()
+            print(f'Generated htpasswd password for Chronograf (user "admin"): {chosen_password}')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
                 logger.debug('Writing HTTP auth string to file: %s', filename)
@@ -324,16 +334,22 @@ def generate_env_file_from_template(app):
     with open(Path(app) / ENV_FILE_TEMPLATE_FILENAME, 'r', encoding='utf-8') as f:
         template = f.read()
     for line in template.strip().split('\n'):
+        if not line.strip():
+            # skip empty lines
+            continue
         var_name, _ = line.split('=')
         if 'DOMAIN' in var_name:
             app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{basic_configuration["domain-name"]}'
-            parameters['domain'] = app_domain_name
+            app_domain_key = var_name.lower()
+            parameters[app_domain_key] = app_domain_name
     # get all placeholders that are not domain from string  (https://stackoverflow.com/a/14061832)
     parameter_names = [name for text, name, spec, conv in string.Formatter().parse(template) if name is not None]
     # filter missing parameters and input them from user
     parameter_names = set(parameter_names)
-    parameter_names.remove('domain')
     for p in parameter_names:
+        if 'domain' in p:
+            # skip parameters that have been filled already (see above)
+            continue
         cleaned_up_p = p.replace('_', ' ')
         if 'password' in p or 'token' in p:
             print('This seems to be a password or token, so a random secure value is suggested.')

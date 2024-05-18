@@ -12,6 +12,7 @@ It provides Docker stacks containing the following services:
 * Portainer - Web-based container management software
 * Watchtower - A solution for automating Docker container base image updates
 * Uptime Kuma - A fancy self-hosted monitoring tool
+* Grafana - Create, explore, and share data through beautiful, flexible dashboards
 * Nextcloud - Self hosted open source cloud file storage
 * Moodle - Open Source Learning Management System
 * Kanboard - Free and open source Kanban project management software
@@ -93,6 +94,13 @@ other apps:
 * bcrypt
 * tomli (fallback for Python versions older than 3.11)
 * argon2-cffi
+
+Additionally, for the script sending test data to Grafana cloud:
+
+* prometheus-client
+* influxdb3-python
+* python-logging-loki
+* python-dotenv
 
 ## Links
 
