@@ -10,7 +10,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)"     
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
     entrypoint:
@@ -44,7 +44,7 @@ services:
   influxdb:
     # InfluxDB - time series database
     image: ${INFLUX_IMAGE}
-    restart: unless-stopped    
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.influxdb.loadbalancer.server.port=8086"
@@ -77,7 +77,7 @@ services:
       - ./telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       # map /tmp to permanent storage (this includes /tmp/metrics.out)
       - telegraf_data:/tmp:rw
-    environment: 
+    environment:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_INIT_BUCKET}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN}
@@ -107,7 +107,7 @@ services:
       - observable_net
     secrets:
       - chronograf_htpasswd_auth
-      
+
   prometheus:
     # Prometheus collects metrics from configured targets at given intervals
     # TODO: Build a scalable and long term storage for Prometheus with Grafana Mimir and Minio.
@@ -184,7 +184,7 @@ volumes:
   grafana_storage:
   grafana_config:
   grafana_provisioning:
-  
+
   influxdb_storage:
   influxdb_config:
   chronograf_storage:
@@ -192,7 +192,7 @@ volumes:
 
   prometheus_settings:
   prometheus_data:
-  
+
   loki_data:
 
 networks:
