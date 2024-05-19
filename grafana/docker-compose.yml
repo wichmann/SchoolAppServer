@@ -96,7 +96,7 @@ services:
       - "traefik.http.routers.chronograf.tls=true"
       - "traefik.http.routers.chronograf.tls.certresolver=letsencrypt"
       - "traefik.http.routers.chronograf.middlewares=chronograf-auth"
-      - "traefik.http.middlewares.chronograf-auth.basicauth.usersfile=/run/secrets/chronograf_htpasswd_auth"
+      - "traefik.http.middlewares.chronograf-auth.basicauth.usersfile=/run/secrets/chronograf_htpasswd_auth.txt"
     volumes:
       - chronograf_storage:/var/lib/chronograf
     environment:
