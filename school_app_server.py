@@ -246,12 +246,14 @@ def create_secret_files(given_app):
         if 'dashboard_auth' in filename:
             chosen_password = create_password()
             print(f'Generated htpasswd password for Traefik Dashboard (user "admin"): {chosen_password}')
+            print('Please save this password for later use!')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
                 logger.debug('Writing HTTP auth string to file: %s', filename)
         elif 'chronograf_htpasswd_auth' in filename:
             chosen_password = create_password()
             print(f'Generated htpasswd password for Chronograf (user "admin"): {chosen_password}')
+            print('Please save this password for later use!')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
                 logger.debug('Writing HTTP auth string to file: %s', filename)

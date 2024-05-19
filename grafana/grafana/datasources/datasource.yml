@@ -51,13 +51,13 @@ datasources:
     editable: true
     isDefault: true
     basicAuth: true
-    basicAuthUser: ${INFLUXDB_USERNAME}
-    basicAuthPassword: ${INFLUXDB_PASSWORD}
+    basicAuthUser: $INFLUXDB_USERNAME
+    basicAuthPassword: $INFLUXDB_PASSWORD
     jsonData:
       version: Flux
-      organization: ${INFLUXDB_INIT_ORG}
-      defaultBucket: ${INFLUXDB_INIT_BUCKET}
+      organization: $INFLUXDB_INIT_ORG
+      defaultBucket: $INFLUXDB_INIT_BUCKET
       tlsSkipVerify: true
     secureJsonData:
-      #password: ${INFLUXDB_PASSWORD}
-      token: ${INFLUXDB_INIT_ADMIN_TOKEN}
+      #password: $INFLUXDB_PASSWORD
+      token: $INFLUXDB_INIT_ADMIN_TOKEN

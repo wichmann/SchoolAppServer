@@ -8,7 +8,7 @@ Before executing the script, install all necessary requirements:
 
 Alternatively, execute script with pipenv:
 
-    pipenv run python test_grafana_cloud.py
+    pipenv run python grafana/test_grafana_cloud.py 
 
 """
 
@@ -46,7 +46,7 @@ def test_influx():
     bucket = os.getenv('INFLUXDB_INIT_BUCKET')
     org = os.getenv('INFLUXDB_INIT_ORG')
     token = os.getenv('INFLUXDB_INIT_ADMIN_TOKEN')
-    url = f'https://{os.getenv('INFLUX_DOMAIN')}'
+    url = f'https://{os.getenv("INFLUX_DOMAIN")}'
     client = InfluxDBClient3(host=url, token=token, org=org)
     data = {
         'data point': {
@@ -69,14 +69,14 @@ def test_loki():
      - https://github.com/sleleko/devops-kb/blob/master/python/push-to-loki.py 
     """
     logging_loki.emitter.LokiEmitter.level_tag = "level"
-    handler = logging_loki.LokiHandler(url=f'https://{os.getenv('LOKI_DOMAIN')}/loki/api/v1/push', version='1')
+    handler = logging_loki.LokiHandler(url=f'https://{os.getenv("LOKI_DOMAIN")}/loki/api/v1/push', version='1')
     logger = logging.getLogger('my-logger')
     logger.addHandler(handler)
     logger.error('Logging a random number for testing: %f...', random.randint(0, 100))
 
 
 def main():
-    """Send test data every 5 seconds."""    
+    """Send test data every 5 seconds."""
     load_dotenv()
     while True:
         try:
