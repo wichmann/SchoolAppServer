@@ -94,6 +94,7 @@ SUBDOMAIN_MAP = {
     'CHRONOGRAF_DOMAIN': 'chronograf',
     'PROMETHEUS_DOMAIN': 'prometheus',
     'LOKI_DOMAIN': 'loki',
+    'ALLOY_DOMAIN': 'alloy',
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',

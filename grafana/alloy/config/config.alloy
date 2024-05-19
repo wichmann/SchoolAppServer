@@ -1,0 +1,53 @@
+logging {
+  level = "debug"
+  format = "logfmt"
+  // forward internal logs to the local Loki instance
+  write_to = [loki.write.loki.receiver]
+}
+
+// collect metrics from the local running Alloy instance and forward to Prometheus
+prometheus.exporter.self "alloy" {}
+prometheus.scrape "alloy" {
+	targets    = prometheus.exporter.self.alloy.targets
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+}
+
+discovery.relabel "metrics_integrations_integrations_traefik" {
+	targets = [{
+		__address__ = env("TRAEFIK_METRICS_DOMAIN"),
+	}]
+
+	rule {
+		target_label = "instance"
+		replacement  = constants.hostname
+	}
+}
+
+// source: https://grafana.com/docs/alloy/latest/reference/components/prometheus.scrape/
+prometheus.scrape "metrics_integrations_integrations_traefik" {
+	targets    = discovery.relabel.metrics_integrations_integrations_traefik.output
+	forward_to = [prometheus.remote_write.metrics_service.receiver]
+	job_name   = "integrations/traefik"
+	basic_auth {
+		username = "admin"
+		password = env("TRAEFIK_METRICS_PASSWORD")
+	}
+}
+
+prometheus.remote_write "metrics_service" {
+	endpoint {
+		url = format(
+			"http://%s/api/v1/push",
+			coalesce(env("REMOTE_WRITE_HOST"), "localhost:9009"),
+		)
+	}
+}
+
+loki.write "loki" {
+	endpoint {
+		url = format(
+			"http://%s/loki/api/v1/push",
+			coalesce(env("LOKI_HOST"), "localhost:3100"),
+		)
+	}
+}

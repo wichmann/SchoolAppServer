@@ -114,7 +114,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.size=256MB
-      - --enable-feature=remote-write-receiver
+      #- --web.enable-remote-write-receiver
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
@@ -143,6 +143,34 @@ services:
     volumes:
       - ./loki/config/loki-config.yaml:/etc/loki/config.yaml
       - loki_data:/loki
+    networks:
+      - observable_net
+
+  alloy:
+    image: ${ALLOY_IMAGE}
+    restart: always
+    depends_on:
+      - prometheus
+      - loki
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --stability.level=experimental # Enable all functionality
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.alloy.loadbalancer.server.port=12345"
+      - "traefik.http.routers.alloy.rule=Host(`${ALLOY_DOMAIN}`)"
+      - "traefik.http.routers.alloy.tls=true"
+      - "traefik.http.routers.alloy.tls.certresolver=letsencrypt"
+    environment:
+      - REMOTE_WRITE_HOST=prometheus:9090
+      - LOKI_HOST=loki:3100
+      - TRAEFIK_METRICS_DOMAIN=${TRAEFIK_METRICS_DOMAIN}
+      - TRAEFIK_METRICS_PASSWORD=${TRAEFIK_METRICS_PASSWORD}
+    volumes:
+      - ./alloy/config/config.alloy:/etc/alloy/config.alloy
     networks:
       - observable_net
 

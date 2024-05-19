@@ -109,34 +109,6 @@ services:
       - uptime_kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
 
-  alloy:
-    image: ${ALLOY_IMAGE}
-    restart: always
-    depends_on:
-      - prometheus
-      - loki
-      #- tempo
-      #- pyroscope
-    command:
-      - run
-      - /etc/alloy/config.alloy
-      - --storage.path=/var/lib/alloy/data
-      - --server.http.listen-addr=0.0.0.0:12345
-      - --stability.level=experimental # Enable all functionality
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.alloy.loadbalancer.server.port=12345"
-      - "traefik.http.routers.alloy.rule=Host(`${ALLOY_DOMAIN}`)"
-      - "traefik.http.routers.alloy.tls=true"
-      - "traefik.http.routers.alloy.tls.certresolver=letsencrypt"
-    environment:
-      REMOTE_WRITE_HOST: grafana-prometheus-1:9009
-      LOKI_HOST: grafana-loki-1:3100
-      #TEMPO_HOST: tempo:4317
-      #PYROSCOPE_HOST: pyroscope:4040
-    volumes:
-      - ./infrastructure/alloy/config/config.alloy:/etc/alloy/config.alloy
-
 volumes:
   portainer_data:
   uptime_kuma:

@@ -81,6 +81,13 @@ other apps:
 
      ➭ start infrastructure
 
+## Troubleshooting
+
+You can execute a shell with the following command to check services inside
+the Docker containers:
+
+    docker run -it --network=infrastructure_default --rm busybox
+
 ## Demo
 
 [![asciicast](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC.svg)](https://asciinema.org/a/bVfOutzX5c1VB1wGT3rvQ9MmC)
