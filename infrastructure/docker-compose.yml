@@ -82,6 +82,8 @@ services:
       - WATCHTOWER_LIFECYCLE_HOOKS=True
       - WATCHTOWER_NOTIFICATIONS=shoutrrr
       - WATCHTOWER_NOTIFICATION_URL=/run/secrets/watchtower_telegram_url
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=${WATCHTOWER_NOTIFICATION_HOSTNAME}
+      - WATCHTOWER_NOTIFICATION_TITLE_TAG=Infos von ${WATCHTOWER_NOTIFICATION_HOSTNAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/localtime:/etc/localtime:ro

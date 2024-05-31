@@ -2,11 +2,14 @@
 
 # SchoolAppServer
 
-Provides scripts and configuration files to setup a school's app server. All
+Provides scripts and configuration files to set up a school's app server. All
 applications are deployed with Docker Compose and served by Traefik as reverse
-proxy. Docker images will be automatically updated by Watchtower.
+proxy. Traefik supports HTTP/3, does SSL offloading and provides SSL
+certificates from Let's Encrypt. The Docker images will be automatically
+updated by Watchtower. Portainer works as management app for containers,
+images, volumes, etc.
 
-It provides Docker stacks containing the following services:
+This repository provides Docker stacks containing the following services:
 
 * Traefik - Cloud Native Application Proxy
 * Portainer - Web-based container management software
