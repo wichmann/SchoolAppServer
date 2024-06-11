@@ -15,6 +15,7 @@ This repository provides Docker stacks containing the following services:
 * Portainer - Web-based container management software
 * Watchtower - A solution for automating Docker container base image updates
 * Uptime Kuma - A fancy self-hosted monitoring tool
+* Authentik - An open-source identity provider and user management
 * Grafana - Create, explore, and share data through beautiful, flexible dashboards
 * Nextcloud - Self hosted open source cloud file storage
 * Moodle - Open Source Learning Management System

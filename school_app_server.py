@@ -2,19 +2,7 @@
 
 """
 Configures and prepares Docker Compose scripts to setup a schools app server.
-It provides Docker stacks containing the following services:
-
-* Traefik
-* Portainer
-* Watchtower
-* Nextcloud
-* Moodle
-* Kanboard
-* Etherpad
-* Hedgedoc
-* StirlingPDF
-* Homer
-* Heimdall
+For a list of provided services, see README file.
 """
 
 import re
@@ -95,9 +83,11 @@ SUBDOMAIN_MAP = {
     'PROMETHEUS_DOMAIN': 'prometheus',
     'LOKI_DOMAIN': 'loki',
     'ALLOY_DOMAIN': 'alloy',
+    'AUTHENTIK_DOMAIN': 'auth'
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
+                'identity-provider': 'Authentik - An open-source identity provider and user management',
                 'grafana': 'Grafana - Create, explore, and share data through beautiful, flexible dashboards',
                 'nextcloud': 'Nextcloud - Self hosted open source cloud file storage',
                 'kanboard': 'Kanboard - Free and open source Kanban project management software',

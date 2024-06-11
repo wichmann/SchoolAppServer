@@ -1,0 +1,117 @@
+services:
+  authentik-db:
+    image: ${AUTHENTIK_DATABASE_IMAGE}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - authentik_database:/var/lib/postgresql/data
+    networks:
+      - authentik_net
+    environment:
+      POSTGRES_PASSWORD: ${AUTHENTIK_DATABASE_PASS}
+      POSTGRES_USER: ${AUTHENTIK_DATABASE_USER}
+      POSTGRES_DB: ${AUTHENTIK_DATABASE_DB}
+
+  authentik-redis:
+    image: ${AUTHENTIK_REDIS_IMAGE}
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - authentik_redis:/data
+    networks:
+      - authentik_net
+
+  authentik:
+    # authentik is an open-source identity provider and user management.
+    # To start the initial setup, navigate to http://<your server's IP or hostname>:9000/if/flow/initial-setup/
+    # TODO: Check whether a authentik proxy is necessary (ghcr.io/goauthentik/proxy).
+    image: ${AUTHENTIK_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    command: server
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=${AUTHENTIK_DATABASE_USER}
+      - AUTHENTIK_POSTGRESQL__NAME=${AUTHENTIK_DATABASE_DB}
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DATABASE_PASS}
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+      #- AUTHENTIK_DEBUG=true
+      #- AUTHENTIK_LOG_LEVEL=debug
+      #- AUTHENTIK_BOOTSTRAP_PASSWORD=akadmin
+      #- AUTHENTIK_BOOTSTRAP_EMAIL=akadmin@example.com
+      # set the media storage settings (By default, media is stored on disk in the /media directory)
+      #- AUTHENTIK_STORAGE__MEDIA__BACKEND: s3
+      # set SMTP settings
+      #- AUTHENTIK_EMAIL__HOST=
+      #- AUTHENTIK_EMAIL__PORT=
+      #- AUTHENTIK_EMAIL__USERNAME=
+      #- AUTHENTIK_EMAIL__PASSWORD=
+      #- AUTHENTIK_EMAIL__USE_TLS=
+      #- AUTHENTIK_EMAIL__USE_SSL=
+      #- AUTHENTIK_EMAIL__TIMEOUT=
+      #- AUTHENTIK_EMAIL__FROM=
+      #- AUTHENTIK_FLOW_BACKGROUND_URL=
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      - "traefik.http.routers.authentik.rule=Host(`${AUTHENTIK_DOMAIN}`)"
+      - "traefik.http.routers.authentik.tls=true"
+      - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+    networks:
+      - authentik_net
+
+  authentik-worker:
+    image: ${AUTHENTIK_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    command: worker
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=${AUTHENTIK_DATABASE_USER}
+      - AUTHENTIK_POSTGRESQL__NAME=${AUTHENTIK_DATABASE_DB}
+      - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DATABASE_PASS}
+      - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+    # `user: root` and the docker socket volume are optional.
+    # See more for the docker socket integration here: https://goauthentik.io/docs/outposts/integrations/docker
+    # Removing `user: root` also prevents the worker from fixing the permissions
+    # on the mounted folders, so when removing this make sure the folders have
+    # the correct UID/GID (1000:1000 by default)
+    #user: root
+    volumes:
+      #- /var/run/docker.sock:/var/run/docker.sock
+      - authentik_media:/media
+      - authentik_templates:/templates
+    networks:
+      - authentik_net
+
+volumes:
+  authentik_database:
+  authentik_redis:
+  authentik_media:
+  authentik_templates:
+
+networks:
+  authentik_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
