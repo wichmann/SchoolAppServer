@@ -34,10 +34,11 @@ services:
       - GITEA__database__NAME=gitea
       - GITEA__database__USER=gitea
       - GITEA__database__PASSWD=/run/secrets/gitea_db_password
-      #- GITEA__service__REGISTER_MANUAL_CONFIRM=true
-      - GITEA__service__DISABLE_REGISTRATION=true
-      - GITEA__openid__ENABLE_OPENID_SIGNIN=false
-      - GITEA__openid__ENABLE_OPENID_SIGNUP=false
+      - GITEA__service__REGISTER_MANUAL_CONFIRM=true
+      #- GITEA__service__DISABLE_REGISTRATION=true
+      # configuration for authorization with Authentik: https://docs.goauthentik.io/integrations/services/gitea/
+      - GITEA__openid__ENABLE_OPENID_SIGNIN=true
+      - GITEA__openid__ENABLE_OPENID_SIGNUP=true
       - GITEA__mailer__ENABLED=true
       - GITEA__mailer__PROTOCOL=smtp #smtp+starttls
       - GITEA__mailer__SMTP_ADDR=${GITEA_SMTP_ADDR}
