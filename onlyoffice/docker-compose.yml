@@ -19,9 +19,7 @@ services:
     networks:
       - onlyoffice_net
     environment:
-     - JWT_SECRET=/run/secrets/onlyoffice_jwt_secret
-    secrets:
-     - onlyoffice_jwt_secret
+     - JWT_SECRET=${ONLYOFFICE_SECRET_TOKEN}
 
 volumes:
   onlyoffice_logs:
@@ -34,7 +32,3 @@ networks:
     # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
     name: infrastructure_default
     external: true
-
-secrets:
-  onlyoffice_jwt_secret:
-    file: onlyoffice_jwt_secret.txt
