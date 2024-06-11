@@ -471,8 +471,9 @@ def evaluate_command(docker_clients, command, args):
                 title="Start apps", text="Which apps should be started?",
                 values=list(app_name_map.items())
             ).run()
-            for app in results_array:
-                start_app(docker_clients, app)
+            if results_array:
+                for app in results_array:
+                    start_app(docker_clients, app)
     elif command == 'stop':
         if args:
             if args[0] in app_name_map:
@@ -487,8 +488,9 @@ def evaluate_command(docker_clients, command, args):
                 title="Stop apps", text="Which apps should be stopped?",
                 values=list(app_name_map.items())
             ).run()
-            for app in results_array:
-                stop_app(docker_clients, app)
+            if results_array:
+                for app in results_array:
+                    stop_app(docker_clients, app)
     elif command == 'pull':
         if args:
             if args[0] in app_name_map:
@@ -503,8 +505,9 @@ def evaluate_command(docker_clients, command, args):
                 title="Pull apps", text="Which apps should be pulled?",
                 values=list(app_name_map.items())
             ).run()
-            for app in results_array:
-                pull_app(docker_clients, app)
+            if results_array:
+                for app in results_array:
+                    pull_app(docker_clients, app)
     elif command == 'setup':
         if args:
             if args[0] in app_name_map:
