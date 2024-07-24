@@ -2,6 +2,12 @@ services:
   etherpad-db:
     image: ${ETHERPAD_DB_IMAGE}
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     environment:
       - POSTGRES_DB=etherpad
       - POSTGRES_PASSWORD=/run/secrets/etherpad_db_password

@@ -2,6 +2,12 @@ services:
   gitea-db:
     image: ${GITEA_DB_IMAGE}
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     environment:
       - POSTGRES_DB=gitea
       - POSTGRES_PASSWORD=/run/secrets/gitea_db_password

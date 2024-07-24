@@ -2,6 +2,12 @@ services:
   hedgedoc-db:
     image: ${HEDGEDOC_DB_IMAGE}
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     environment:
       - POSTGRES_USER=hedgedoc
       - POSTGRES_PASSWORD=/run/secrets/hedgedoc_db_password
