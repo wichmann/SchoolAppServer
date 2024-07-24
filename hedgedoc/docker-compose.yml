@@ -48,13 +48,14 @@ services:
       - CMD_URL_ADDPORT=false
       - CMD_PROTOCOL_USESSL=true
       - CMD_SESSION_SECRET=/run/secrets/hedgedoc_session_secret
+      # Infos about login methods: https://docs.hedgedoc.org/configuration/#login-methods
+      - CMD_EMAIL=false
       - CMD_ALLOW_EMAIL_REGISTER=false
-      # More login methods: https://docs.hedgedoc.org/configuration/#login-methods
-      - CMD_EMAIL=false # disallow login; only guest notes
-      #- CMD_ALLOW_ANYMOUS=true
-      #- CMD_ALLOW_ANONYMOUS_EDITS=true
+      - CMD_ALLOW_ANYMOUS=false
+      - CMD_ALLOW_ANONYMOUS_EDITS=false
       - CMD_ALLOW_FREEURL=true # allows free choseable URLs instead of random ones
-      - CMD_DEFAULT_PERMISSION=freely # sets user restrictions for new notes: freely, editable, limited, locked, protected, private
+      - CMD_DEFAULT_PERMISSION=editable # sets user restrictions for new notes: freely, editable, limited, locked, protected, private
+      # configuration for authorization with Authentik: https://docs.goauthentik.io/integrations/services/hedgedoc/
     volumes:
       - hedgedoc_uploads:/hedgedoc/public/uploads
     networks:

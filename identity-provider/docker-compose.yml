@@ -36,6 +36,9 @@ services:
     # authentik is an open-source identity provider and user management.
     # To start the initial setup, navigate to http://<your server's IP or hostname>:9000/if/flow/initial-setup/
     # TODO: Check whether a authentik proxy is necessary (ghcr.io/goauthentik/proxy).
+    # More infos:
+    #  - https://helgeklein.com/blog/authentik-authentication-sso-user-management-password-reset-for-home-networks/
+    #  - 
     image: ${AUTHENTIK_IMAGE}
     restart: unless-stopped
     depends_on:
@@ -49,6 +52,9 @@ services:
       - AUTHENTIK_POSTGRESQL__NAME=${AUTHENTIK_DATABASE_DB}
       - AUTHENTIK_POSTGRESQL__PASSWORD=${AUTHENTIK_DATABASE_PASS}
       - AUTHENTIK_SECRET_KEY=${AUTHENTIK_SECRET_KEY}
+      #- AUTHENTIK_COOKIE_DOMAIN=${AUTHENTIK_COOKIE_DOMAIN}
+      #- AUTHENTIK_ERROR_REPORTING__ENABLED=${AUTHENTIK_ERROR_REPORTING__ENABLED}
+      - AUTHENTIK_GDPR_COMPLIANCE=true
       #- AUTHENTIK_DEBUG=true
       #- AUTHENTIK_LOG_LEVEL=debug
       #- AUTHENTIK_BOOTSTRAP_PASSWORD=akadmin

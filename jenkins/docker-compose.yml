@@ -1,4 +1,6 @@
 services:
+  # TODO: Add build node!
+  # configuration for authorization with Authentik: https://docs.goauthentik.io/integrations/services/jenkins/
   jenkins:
     image: ${JENKINS_IMAGE}
     labels:
