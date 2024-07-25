@@ -41,6 +41,8 @@ services:
     # Documentation: https://docs.portainer.io/user/home
     image: ${PORTAINER_IMAGE}
     restart: always
+    #command: --admin-password '$$2y$$05$$ZBq/6oanDzs3iwkhQCxF2uKoJsGXA0SI4jdu1PkFrnsKfpCH5Ae4G'
+    command: --admin-password-file /run/secrets/portainer_admin_password
     labels:
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.routers.portainer.rule=Host(`${PORTAINER_DOMAIN}`)"
@@ -50,6 +52,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    secrets:
+      - portainer_admin_password
 
   #autoheal:
   #  image: willfarrell/autoheal
@@ -120,3 +124,5 @@ secrets:
     file: watchtower_telegram_url.txt
   traefik_dashboard_auth:
     file: traefik_dashboard_auth.txt
+  portainer_admin_password:
+    file: portainer_admin_password.txt
