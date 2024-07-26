@@ -4,7 +4,7 @@ services:
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      start_period: 20s
+      start_period: 30s
       interval: 30s
       retries: 5
       timeout: 5s
@@ -21,6 +21,7 @@ services:
 
   etherpad:
     image: ${ETHERPAD_IMAGE}
+    restart: on-failure
     depends_on:
       - etherpad-db
     labels:
