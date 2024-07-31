@@ -3,9 +3,14 @@
 * Apache Streampipes
 * ContainerSSH
 * AdGuard-Home
+   - https://docs.techdox.nz/adguard/
+   - https://github.com/AdguardTeam/AdGuardHome/discussions/5453
 * Immich
+   - https://immich.app/docs/install/docker-compose
 * JupyterHub
 * OwnCloud
+* VSCode
+   - https://docs.linuxserver.io/images/docker-code-server/
 * Ilias
 * Jellyfin - The Free Software Media System
 * Swagger Editor
