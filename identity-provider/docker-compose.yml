@@ -37,8 +37,11 @@ services:
     # To start the initial setup, navigate to http://<your server's IP or hostname>:9000/if/flow/initial-setup/
     # TODO: Check whether a authentik proxy is necessary (ghcr.io/goauthentik/proxy).
     # More infos:
+    #  - https://github.com/brokenscripts/authentik_traefik [very good guide to Authentik behind Traefik!]
     #  - https://helgeklein.com/blog/authentik-authentication-sso-user-management-password-reset-for-home-networks/
-    #  - 
+    # Alternatives to Authentik:
+    #  - Keycloak https://www.keycloak.org | https://github.com/keycloak/keycloak [by Redhat, scalable solution, extensive features]
+    #  - Authelia https://www.authelia.com/ | https://github.com/authelia/authelia [more easily to deploy and maintain]
     image: ${AUTHENTIK_IMAGE}
     restart: unless-stopped
     depends_on:

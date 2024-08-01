@@ -3,6 +3,8 @@ services:
     # Project management Kanban-style
     # default credentials: admin/admin
     # https://docs.kanboard.org/v1/admin/docker/
+    # information for running MariaDB instead of SQLite: https://docs.kanboard.org/v1/admin/docker/
+    # plugin for authorization with Authentik: https://github.com/kanboard/plugin-oauth2
     image: ${KANBOARD_IMAGE}
     restart: unless-stopped
     labels:
