@@ -1,0 +1,26 @@
+services:
+  kiwix-serve:
+    image: ${KIWIX_IMAGE}
+    restart: unless-stopped
+    command: '*.zim'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
+      - "traefik.http.routers.kiwix.rule=Host(`${KIWIX_DOMAIN}`)"
+      - "traefik.http.routers.kiwix.tls=true"
+      - "traefik.http.routers.kiwix.tls.certresolver=letsencrypt"
+    volumes:
+      - ./kiwix-data:/data
+    networks:
+      - kiwix_net
+    environment:
+      - TZ=Europe/Berlin
+
+volumes:
+  kiwix_data:
+
+networks:
+  kiwix_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
