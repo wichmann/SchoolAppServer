@@ -224,8 +224,7 @@ def generate_argon_password_hash(password):
     The gennerated hash should look like this:
     $argon2id$v=19$m=65540,t=3,p=4$bXBGMENBZUVzT3VUSFErTzQzK25Jck1BN2Z0amFuWjdSdVlIQVZqYzAzYz0$T9m73OdD...
     """
-    ph = PasswordHasher(time_cost=3, memory_cost=65540,
-                        parallelism=4, hash_len=32, salt_len=32)
+    ph = PasswordHasher(time_cost=3, memory_cost=65540, parallelism=4, hash_len=32, salt_len=32)
     return ph.hash(password)
 
 
@@ -315,8 +314,7 @@ def do_initial_basic_setup():
     # write basic configuration to file
     with open(Path(INITIAL_SETUP_MARKER_FILE), 'w', encoding='utf-8') as f:
         f.write(f'mail-address = "{mail_address}"\ndomain-name = "{domain_name}"\n')
-        logger.debug('Writing basic configuration to file: %s',
-                     INITIAL_SETUP_MARKER_FILE)
+        logger.debug('Writing basic configuration to file: %s', INITIAL_SETUP_MARKER_FILE)
     replace_mail_address_in_files(mail_address)
     # set correct file permissions for acme.json in app 'infrastructure'
     os.chmod(Path('infrastructure') / 'acme.json', 0o600)
@@ -338,8 +336,7 @@ def generate_env_file_from_template(app):
             continue
         var_name, _ = line.split('=')
         if 'DOMAIN' in var_name:
-            app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{
-                basic_configuration["domain-name"]}'
+            app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{basic_configuration["domain-name"]}'
             app_domain_key = var_name.lower()
             parameters[app_domain_key] = app_domain_name
     # get all placeholders that are not domain from string  (https://stackoverflow.com/a/14061832)
@@ -354,8 +351,7 @@ def generate_env_file_from_template(app):
         cleaned_up_p = p.replace('_', ' ')
         if 'password' in p or 'token' in p:
             print('This seems to be a password or token, so a random secure value is suggested.')
-            parameters[p] = prompt(f'Please enter parameter "{
-                                   cleaned_up_p}": ', default=create_password())
+            parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
         else:
             parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
         if 'vaultwarden_admin_token' == p:
@@ -555,8 +551,7 @@ def main():
     # (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
     docker_clients = {}
     for app, _ in app_name_map.items():
-        docker = DockerClient(compose_files=[Path(
-            app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
+        docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
         docker_clients[app] = docker
     load_basic_configuration()
     print(f'{APP} {VERSION}')
