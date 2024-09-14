@@ -4,9 +4,9 @@ services:
     restart: unless-stopped
     environment:
       - MARIADB_USER=moodle
-      - MARIADB_PASSWORD=/run/secrets/moodle_db_password
+      - MARIADB_PASSWORD_FILE=/run/secrets/moodle_db_password
       - MARIADB_DATABASE=moodle
-      - MARIADB_ROOT_PASSWORD=/run/secrets/moodle_db_root_password
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/moodle_db_root_password
       - MARIADB_CHARACTER_SET=utf8mb4
       - MARIADB_COLLATE=utf8mb4_unicode_ci
     volumes:

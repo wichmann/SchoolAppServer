@@ -31,9 +31,9 @@ services:
       - hesk_net
     environment:
       - MARIADB_USER=hesk
-      - MARIADB_PASSWORD=/run/secrets/hesk_db_password
+      - MARIADB_PASSWORD_FILE=/run/secrets/hesk_db_password
       - MARIADB_DATABASE=hesk
-      - MARIADB_ROOT_PASSWORD=/run/secrets/hesk_db_root_password
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/hesk_db_root_password
     secrets:
       - hesk_db_password
       - hesk_db_root_password
