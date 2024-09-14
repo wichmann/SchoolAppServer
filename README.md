@@ -33,6 +33,8 @@ This repository provides Docker stacks containing the following services:
 * TeamMapper - Online tool to create and collaborate on mindmaps
 * StirlingPDF - Web-based PDF manipulation tool
 * Vaultwarden - Community driven web-based Bitwarden compatible password manager server
+* Kiwix - Provides offline access to free educational content
+* Hesk - Help Desk Software
 * Homer - A very simple static homepage for your server
 * Heimdall - An Application dashboard and launcher
 

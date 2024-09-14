@@ -27,17 +27,17 @@ python_print = print
 import yaml
 import bcrypt
 from argon2 import PasswordHasher
-from prompt_toolkit import PromptSession, prompt, HTML
-from prompt_toolkit import print_formatted_text as print
-from prompt_toolkit.validation import Validator
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.completion import NestedCompleter
-from prompt_toolkit.history import FileHistory
-from prompt_toolkit.styles import Style
-from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
-from prompt_toolkit.key_binding import KeyBindings
-from python_on_whales.exceptions import DockerException
 from python_on_whales import DockerClient
+from python_on_whales.exceptions import DockerException
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.shortcuts import checkboxlist_dialog, yes_no_dialog
+from prompt_toolkit.styles import Style
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.validation import Validator
+from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit import PromptSession, prompt, HTML
 
 
 # create logger instance
@@ -83,7 +83,9 @@ SUBDOMAIN_MAP = {
     'PROMETHEUS_DOMAIN': 'prometheus',
     'LOKI_DOMAIN': 'loki',
     'ALLOY_DOMAIN': 'alloy',
-    'AUTHENTIK_DOMAIN': 'auth'
+    'AUTHENTIK_DOMAIN': 'auth',
+    'KIWIX_DOMAIN': 'kiwix',
+    'HESK_DOMAIN': 'hesk'
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
@@ -104,6 +106,8 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'teammapper': 'TeamMapper - Online tool to create and collaborate on mindmaps',
                 'mattermost': 'Mattermost - Open-source, self-hostable online chat service with file sharing',
                 'vaultwarden': 'Vaultwarden - Community driven web-based Bitwarden compatible password manager server',
+                'kiwix': 'Kiwix - Provides offline access to free educational content',
+                'hesk': 'Help Desk Software HESK',
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
@@ -220,7 +224,8 @@ def generate_argon_password_hash(password):
     The gennerated hash should look like this:
     $argon2id$v=19$m=65540,t=3,p=4$bXBGMENBZUVzT3VUSFErTzQzK25Jck1BN2Z0amFuWjdSdVlIQVZqYzAzYz0$T9m73OdD...
     """
-    ph = PasswordHasher(time_cost=3, memory_cost=65540, parallelism=4, hash_len=32, salt_len=32)
+    ph = PasswordHasher(time_cost=3, memory_cost=65540,
+                        parallelism=4, hash_len=32, salt_len=32)
     return ph.hash(password)
 
 
@@ -235,14 +240,16 @@ def create_secret_files(given_app):
         filepath = Path(app) / filename
         if 'dashboard_auth' in filename:
             chosen_password = create_password()
-            print(f'Generated htpasswd password for Traefik Dashboard (user "admin"): {chosen_password}')
+            print(f'Generated htpasswd password for Traefik Dashboard (user "admin"): {
+                  chosen_password}')
             print('Please save this password for later use!')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
                 logger.debug('Writing HTTP auth string to file: %s', filename)
         elif 'chronograf_htpasswd_auth' in filename:
             chosen_password = create_password()
-            print(f'Generated htpasswd password for Chronograf (user "admin"): {chosen_password}')
+            print(f'Generated htpasswd password for Chronograf (user "admin"): {
+                  chosen_password}')
             print('Please save this password for later use!')
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(generate_htpasswd_bcrypt('admin', chosen_password))
@@ -310,7 +317,8 @@ def do_initial_basic_setup():
     # write basic configuration to file
     with open(Path(INITIAL_SETUP_MARKER_FILE), 'w', encoding='utf-8') as f:
         f.write(f'mail-address = "{mail_address}"\ndomain-name = "{domain_name}"\n')
-        logger.debug('Writing basic configuration to file: %s', INITIAL_SETUP_MARKER_FILE)
+        logger.debug('Writing basic configuration to file: %s',
+                     INITIAL_SETUP_MARKER_FILE)
     replace_mail_address_in_files(mail_address)
     # set correct file permissions for acme.json in app 'infrastructure'
     os.chmod(Path('infrastructure') / 'acme.json', 0o600)
@@ -332,11 +340,13 @@ def generate_env_file_from_template(app):
             continue
         var_name, _ = line.split('=')
         if 'DOMAIN' in var_name:
-            app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{basic_configuration["domain-name"]}'
+            app_domain_name = f'{SUBDOMAIN_MAP[var_name]}.{
+                basic_configuration["domain-name"]}'
             app_domain_key = var_name.lower()
             parameters[app_domain_key] = app_domain_name
     # get all placeholders that are not domain from string  (https://stackoverflow.com/a/14061832)
-    parameter_names = [name for text, name, spec, conv in string.Formatter().parse(template) if name is not None]
+    parameter_names = [name for text, name, spec, conv in string.Formatter().parse(
+        template) if name is not None]
     # filter missing parameters and input them from user
     parameter_names = set(parameter_names)
     for p in parameter_names:
@@ -346,7 +356,8 @@ def generate_env_file_from_template(app):
         cleaned_up_p = p.replace('_', ' ')
         if 'password' in p or 'token' in p:
             print('This seems to be a password or token, so a random secure value is suggested.')
-            parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ', default=create_password())
+            parameters[p] = prompt(f'Please enter parameter "{
+                                   cleaned_up_p}": ', default=create_password())
         else:
             parameters[p] = prompt(f'Please enter parameter "{cleaned_up_p}": ')
         if 'vaultwarden_admin_token' == p:
@@ -546,7 +557,8 @@ def main():
     # (Python-on-Whales: https://gabrieldemarmiesse.github.io/python-on-whales/sub-commands/compose/)
     docker_clients = {}
     for app, _ in app_name_map.items():
-        docker = DockerClient(compose_files=[Path(app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
+        docker = DockerClient(compose_files=[Path(
+            app) / 'docker-compose.yml'], compose_env_file=Path(app) / '.env')
         docker_clients[app] = docker
     load_basic_configuration()
     print(f'{APP} {VERSION}')
