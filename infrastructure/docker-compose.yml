@@ -4,6 +4,12 @@ services:
     # Documentation: https://doc.traefik.io/traefik/ 
     image: ${TRAEFIK_IMAGE}
     restart: always
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 1s
+      retries: 3
+      start_period: 10s
     ports:
       - "80:80"
       # open ports for TCP and UDP to allow HTTP/3 via QUIC
