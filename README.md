@@ -40,6 +40,11 @@ This repository provides Docker stacks containing the following services:
 
 ![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
 
+If you want something simalar, but better:
+
+* https://github.com/MightyMoud/sidekick
+* https://kamal-deploy.org
+
 ## Installation
 
 Before using the tool you have to install all necessary packages:
