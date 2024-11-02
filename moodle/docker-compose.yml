@@ -1,23 +1,25 @@
 services:
   moodle-db:
     image: ${MOODLE_DB_IMAGE}
-    restart: unless-stopped
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 30s
+      interval: 30s
+      retries: 5
+      timeout: 5s
     environment:
-      - MARIADB_USER=moodle
-      - MARIADB_PASSWORD_FILE=/run/secrets/moodle_db_password
-      - MARIADB_DATABASE=moodle
-      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/moodle_db_root_password
-      - MARIADB_CHARACTER_SET=utf8mb4
-      - MARIADB_COLLATE=utf8mb4_unicode_ci
+      - POSTGRES_DB=moodle
+      - POSTGRES_PASSWORD=${MOODLE_DB_PASSWORD}
+      - POSTGRES_USER=moodle
     volumes:
-      - moodle_db_data:/var/lib/mysql
+      - moodle_db_data:/var/lib/postgresql/data
     networks:
-      - school_net
-    secrets:
-      - moodle_db_root_password
-      - moodle_db_password
+      - moodle_net
 
   moodle:
+    # Source: https://github.com/erseco/alpine-moodle
+    # Alternative: https://github.com/jimsihk/alpine-moodle
     image: ${MOODLE_IMAGE}
     restart: unless-stopped
     depends_on:
@@ -26,52 +28,52 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.moodle.loadbalancer.server.port=8080"
       - "traefik.http.routers.moodle.rule=Host(`${MOODLE_DOMAIN}`)"
+      #- "traefik.http.routers.moodle.rule=Host(`${MOODLE_DOMAIN1}`) || Host(`${MOODLE_DOMAIN2}`)"
       - "traefik.http.routers.moodle.tls=true"
       - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
-    volumes:
-      - moodle_data:/bitnami/moodle
-      - moodledata_data:/bitnami/moodledata
-    networks:
-      - school_net
+      #- "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
     environment:
-      - MOODLE_DATABASE_HOST=moodle-db
-      - MOODLE_DATABASE_PORT_NUMBER=3306
-      - MOODLE_DATABASE_USER=moodle
-      - MOODLE_DATABASE_PASSWORD=/run/secrets/moodle_db_password
-      - MOODLE_DATABASE_NAME=moodle
-      - MOODLE_USERNAME=admin
-      # uses env because secrets file does not seem to work here
-      - MOODLE_PASSWORD=${MOODLE_ADMIN_PASSWORD}
-      - MOODLE_EMAIL=${MOODLE_ADMIN_EMAIL}
-      - MOODLE_SITE_NAME=${MOODLE_SITE_NAME}
-      - MOODLE_HOST=${MOODLE_DOMAIN}
-      #- MOODLE_REVERSEPROXY=true
-      #- MOODLE_SSLPROXY=true
-      - MOODLE_LANG=de
-      - MOODLE_SMTP_HOST=${MOODLE_SMTP_ADDR}
-      - MOODLE_SMTP_PORT=${MOODLE_SMTP_PORT}
-      - MOODLE_SMTP_USER=${MOODLE_SMTP_USER}
-      - MOODLE_SMTP_PASSWORD=/run/secrets/moodle_smtp_password
-      - MOODLE_SMTP_PROTOCOL=ssl
-    secrets:
-      - moodle_db_password
-      - moodle_smtp_password
+      LANG: de_DE.UTF-8
+      LANGUAGE: de_DE:de
+      SITE_URL: "https://${MOODLE_DOMAIN}"
+      DB_TYPE: "pgsql"
+      DB_HOST: "moodle-db"
+      DB_PORT: 5432
+      DB_NAME: "moodle"
+      DB_USER: "moodle"
+      DB_PASS: ${MOODLE_DB_PASSWORD}
+      REVERSEPROXY: false
+      SSLPROXY: true
+      MOODLE_EMAIL: $MOODLE_ADMIN_EMAIL
+      MOODLE_LANGUAGE: de
+      MOODLE_SITENAME: $MOODLE_SITE_NAME
+      MOODLE_USERNAME: $MOODLE_ADMIN_USER
+      MOODLE_PASSWORD: $MOODLE_ADMIN_PASSWORD
+      SMTP_HOST: $MOODLE_SMTP_ADDR
+      SMTP_PORT: $MOODLE_SMTP_PORT
+      SMTP_USER: $MOODLE_SMTP_PORT
+      SMTP_PASSWORD: $MOODLE_SMTP_PASSWORD
+      SMTP_PROTOCOL: tls
+      MOODLE_MAIL_NOREPLY_ADDRESS: noreply@localhost
+      MOODLE_MAIL_PREFIX: "[moodle]"
+      PRE_CONFIGURE_COMMANDS: |
+        echo 'This is a pre-configure command'
+      POST_CONFIGURE_COMMANDS: |
+        echo 'This is a post-configure command'
+      # php admin/cli/install_plugin.php --url=https://moodle.org/plugins/download.php/32715/block_sharing_cart_moodle44_2024072900.zip --run
+    volumes:
+      - moodle_data:/var/www/moodledata
+      - moodle_html:/var/www/html
+    networks:
+      - moodle_net
 
 volumes:
-  moodle_data:
-  moodledata_data:
   moodle_db_data:
+  moodle_data:
+  moodle_html:
 
 networks:
-  school_net:
+  moodle_net:
     # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
     name: infrastructure_default
     external: true
-
-secrets:
-  moodle_db_root_password:
-    file: moodle_db_root_password.txt
-  moodle_db_password:
-    file: moodle_db_password.txt
-  moodle_smtp_password:
-    file: moodle_smtp_password.txt
