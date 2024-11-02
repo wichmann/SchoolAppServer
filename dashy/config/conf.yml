@@ -1,0 +1,38 @@
+pageInfo:
+  title: Dashboard
+  description: Willkommen zum Dashboard
+  navLinks:
+    - title: GitHub account
+      path: https://github.com/wichmann/
+appConfig:
+  theme: default
+  layout: vertical
+  iconSize: large
+  language: de
+sections:
+  - name: Administration
+    icon: fas fa-rocket
+    items:
+      - &ref_0
+        title: school-app-server-ansible-playbooks
+        description: Ansible playbooks for setting up and configuring a school's app server.
+        url: https://github.com/wichmann/school-app-server-ansible-playbooks
+        icon: far fa-book
+        id: 0_1478_ansible
+      - &ref_1
+        title: SchoolAppServer
+        description: Docker Compose files and an interactive Python script to configure and set up a school's app server.
+        url: https://github.com/wichmann/SchoolAppServer
+        icon: favicon
+        id: 1_1478_dockercompose
+      - &ref_2
+        title: Stirling PDF
+        description: Your locally hosted one-stop-shop for all your PDF needs.
+        icon: favicon
+        url: https://pdf.wichmann.wtf
+        target: newtab
+        id: 3_1478_pdf
+    filteredItems:
+      - *ref_0
+      - *ref_1
+      - *ref_2

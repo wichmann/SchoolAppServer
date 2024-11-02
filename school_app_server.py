@@ -85,7 +85,8 @@ SUBDOMAIN_MAP = {
     'ALLOY_DOMAIN': 'alloy',
     'AUTHENTIK_DOMAIN': 'auth',
     'KIWIX_DOMAIN': 'kiwix',
-    'HESK_DOMAIN': 'hesk'
+    'HESK_DOMAIN': 'hesk',
+    'DASHY_DOMAIN': 'dash'
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
@@ -109,6 +110,7 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'kiwix': 'Kiwix - Provides offline access to free educational content',
                 'hesk': 'Help Desk Software HESK',
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
+                'dashy': 'Dashy - A self-hostable personal dashboard built for you',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
                 'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
 

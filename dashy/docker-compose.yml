@@ -1,0 +1,33 @@
+services:
+  # A self-hostable personal dashboard built for you. Includes status-checking, widgets, themes, icon packs, a UI editor and tons more!
+  # Source: https://github.com/Lissy93/dashy/blob/master/docs/deployment.md#using-docker-compose
+  dashy:
+    image: ${DASHY_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.http.services.dashy.loadbalancer.server.port=8080"
+      - "traefik.http.routers.dashy.rule=Host(`${DASHY_DOMAIN}`)"
+      - "traefik.http.routers.dashy.tls=true"
+      - "traefik.http.routers.dashy.tls.certresolver=letsencrypt"
+    networks:
+      - dashy_net
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./config/conf.yml:/app/user-data/conf.yml
+      # - /path/to/item-icons:/app/user-data/item-icons/
+    # Specify your user ID and group ID. You can find this by running `id -u` and `id -g`
+    #  - UID=1000
+    #  - GID=1000
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  dashy_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true

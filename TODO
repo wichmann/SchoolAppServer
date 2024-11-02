@@ -1,19 +1,22 @@
 # TODO
 
 * Apache Streampipes
+* BookStack is a simple, self-hosted, easy-to-use platform for organising and storing information. (https://www.bookstackapp.com)
+* Immich
+   - https://immich.app/docs/install/docker-compose
 * ContainerSSH
 * AdGuard-Home
    - https://docs.techdox.nz/adguard/
    - https://github.com/AdguardTeam/AdGuardHome/discussions/5453
-* Immich
-   - https://immich.app/docs/install/docker-compose
 * JupyterHub
-* OwnCloud
 * VSCode
    - https://docs.linuxserver.io/images/docker-code-server/
 * Ilias
 * Jellyfin - The Free Software Media System
 * Swagger Editor
+* n8n is an extendable workflow automation tool
+   - https://hub.docker.com/r/n8nio/n8n
+* OwnCloud
 * Windows
 * ollama + Perplexica (https://github.com/ItzCrazyKns/Perplexica)
    - docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama

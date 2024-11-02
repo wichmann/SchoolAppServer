@@ -21,6 +21,7 @@ services:
     networks:
       - kanboard_net
     environment:
+      #- DEBUG=true
       - PLUGIN_INSTALLER=true
       - MAIL_CONFIGURATION=true
       - MAIL_FROM=${KANBOARD_SMTP_USER}

@@ -37,6 +37,7 @@ This repository provides Docker stacks containing the following services:
 * Hesk - Help Desk Software
 * Homer - A very simple static homepage for your server
 * Heimdall - An Application dashboard and launcher
+* Dashy - A self-hostable personal dashboard built for you.
 
 ![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
 
