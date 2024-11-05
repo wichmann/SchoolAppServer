@@ -56,6 +56,29 @@ services:
       - CMD_ALLOW_FREEURL=true # allows free choseable URLs instead of random ones
       - CMD_DEFAULT_PERMISSION=editable # sets user restrictions for new notes: freely, editable, limited, locked, protected, private
       # configuration for authorization with Authentik: https://docs.goauthentik.io/integrations/services/hedgedoc/
+      - CMD_OAUTH2_PROVIDERNAME=authentik
+      - CMD_OAUTH2_CLIENT_ID=${HEDGEDOC_OAUTH2_CLIENT_ID}
+      - CMD_OAUTH2_CLIENT_SECRET=${HEDGEDOC_OAUTH2_CLIENT_SECRET}
+      - CMD_OAUTH2_SCOPE=openid email profile
+      - CMD_OAUTH2_USER_PROFILE_URL="https://${HEDGEDOC_OAUTH2_DOMAIN}/application/o/userinfo/"
+      - CMD_OAUTH2_TOKEN_URL="https://${HEDGEDOC_OAUTH2_DOMAIN}/application/o/token/"
+      - CMD_OAUTH2_AUTHORIZATION_URL="https://${HEDGEDOC_OAUTH2_DOMAIN}/application/o/authorize/"
+      - CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR=preferred_username
+      - CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR=name
+      - CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR=email
+      # configuration for authorization with Authelia: https://docs.hedgedoc.org/guides/auth/authelia/
+      #- CMD_OAUTH2_PROVIDERNAME=Authelia
+      #- CMD_OAUTH2_CLIENT_ID=${HEDGEDOC_OAUTH2_CLIENT_ID}
+      #- CMD_OAUTH2_CLIENT_SECRET=${HEDGEDOC_OAUTH2_CLIENT_SECRET}
+      #- CMD_OAUTH2_USER_PROFILE_URL=https://${HEDGEDOC_OAUTH2_DOMAIN}/api/oidc/userinfo
+      #- CMD_OAUTH2_TOKEN_URL=https://${HEDGEDOC_OAUTH2_DOMAIN}/api/oidc/token
+      #- CMD_OAUTH2_AUTHORIZATION_URL=https://${HEDGEDOC_OAUTH2_DOMAIN}/api/oidc/authorization
+      #- CMD_OAUTH2_SCOPE=openid email profile groups
+      #- CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR=preferred_username
+      #- CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR=name
+      #- CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR=email
+      #- CMD_OAUTH2_ROLES_CLAIM=groups
+      #- CMD_OAUTH2_ACCESS_ROLE=hedgedoc
     volumes:
       - hedgedoc_uploads:/hedgedoc/public/uploads
     networks:
