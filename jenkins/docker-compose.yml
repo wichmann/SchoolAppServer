@@ -1,5 +1,4 @@
 services:
-  # TODO: Add build node!
   # configuration for authorization with Authentik: https://docs.goauthentik.io/integrations/services/jenkins/
   jenkins:
     image: ${JENKINS_IMAGE}
@@ -12,6 +11,16 @@ services:
     restart: always
     volumes:
       - jenkins_home:/var/jenkins_home
+    networks:
+      - jenkins_net
+
+  jenkins-agent:
+    # Guide: https://www.browserstack.com/guide/jenkins-docker-agent
+    # Docker image: https://github.com/jenkinsci/docker-ssh-agent
+    image: ${JENKINS_AGENT_IMAGE}
+    restart: always
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
     networks:
       - jenkins_net
 
