@@ -1,10 +1,8 @@
-
-################################################################
-# Define global middleware for HTST header
-################################################################
-
 http:
   middlewares:
+    ################################################################
+    # Add HTST headers for TLS connections
+    ################################################################
     secure-headers:
       headers:
         frameDeny: true
@@ -15,12 +13,17 @@ http:
         browserXssFilter: true
         forceSTSHeader: true
         referrerPolicy: "strict-origin-when-cross-origin"
-    #    accessControlAllowMethods:
-    #      - GET
-    #      - POST
-    #    accessControlAllowOriginList:
-    #      - https://foobar.net
-    #      - https://www.foobar.net
-    #    accessControlMaxAge: 100
-    #    addVaryheader: true
-    #    contentSecurityPolicy: script-src 'self'
+
+    ################################################################
+    # Show individual error page for all client and server errors
+    ################################################################
+    errorpage:
+      # Documentation: https://doc.traefik.io/traefik/middlewares/http/errorpages/
+      # To use the individual error page, add this middleware to the Docker Compose file:
+      # e.g. - "traefik.http.routers.portainer.middlewares=errorpage@file"
+      errors:
+        status:
+          - "400-599"
+        service: defaultpage@docker
+        query: "error.html"
+
