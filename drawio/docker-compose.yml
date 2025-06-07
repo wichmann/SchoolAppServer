@@ -6,6 +6,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.drawio.loadbalancer.server.port=8080"
       - "traefik.http.routers.drawio.rule=Host(`${DRAWIO_DOMAIN}`)"
+      - "traefik.http.routers.drawio.entrypoints=websecure"
       - "traefik.http.routers.drawio.tls=true"
       - "traefik.http.routers.drawio.tls.certresolver=letsencrypt"
     #  - traefik.http.routers.drawio.middlewares = [`drawio-modification`]

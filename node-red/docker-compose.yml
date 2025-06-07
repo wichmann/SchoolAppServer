@@ -6,6 +6,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.node-red.loadbalancer.server.port=1880"
       - "traefik.http.routers.node-red.rule=Host(`${NODE_RED_DOMAIN}`)"
+      - "traefik.http.routers.node-red.entrypoints=websecure"
       - "traefik.http.routers.node-red.tls=true"
       - "traefik.http.routers.node-red.tls.certresolver=letsencrypt"
     volumes:

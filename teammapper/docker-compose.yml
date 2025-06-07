@@ -8,6 +8,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.teammapper.loadbalancer.server.port=3000"
       - "traefik.http.routers.teammapper.rule=Host(`${TEAMMAPPER_DOMAIN}`)"
+      - "traefik.http.routers.teammapper.entrypoints=websecure"
       - "traefik.http.routers.teammapper.tls=true"
       - "traefik.http.routers.teammapper.tls.certresolver=letsencrypt"
     environment:

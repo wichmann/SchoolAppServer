@@ -75,7 +75,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-      - "traefik.http.routers.authentik.rule=Host(`${AUTHENTIK_DOMAIN}`)"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
       - "traefik.http.routers.authentik.tls=true"
       - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
     volumes:

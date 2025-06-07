@@ -21,6 +21,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.wekan.loadbalancer.server.port=8080"
       - "traefik.http.routers.wekan.rule=Host(`${WEKAN_DOMAIN}`)"
+      - "traefik.http.routers.wekan.entrypoints=websecure"
       - "traefik.http.routers.wekan.tls=true"
       - "traefik.http.routers.wekan.tls.certresolver=letsencrypt"
     environment:

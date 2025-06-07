@@ -9,6 +9,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.hesk.loadbalancer.server.port=8080"
       - "traefik.http.routers.hesk.rule=Host(`${HESK_DOMAIN}`)"
+      - "traefik.http.routers.hesk.entrypoints=websecure"
       - "traefik.http.routers.hesk.tls=true"
       - "traefik.http.routers.hesk.tls.certresolver=letsencrypt"
     volumes:

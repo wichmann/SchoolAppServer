@@ -30,6 +30,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
       - "traefik.http.routers.gitea.rule=Host(`${GITEA_DOMAIN}`)"
+      - "traefik.http.routers.gitea.entrypoints=websecure"
       - "traefik.http.routers.gitea.tls=true"
       - "traefik.http.routers.gitea.tls.certresolver=letsencrypt"
       # TODO: Check if port for SSH access is necessary?

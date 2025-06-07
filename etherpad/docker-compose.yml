@@ -28,6 +28,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.etherpad.loadbalancer.server.port=9001"
       - "traefik.http.routers.etherpad.rule=Host(`${ETHERPAD_DOMAIN}`)"
+      - "traefik.http.routers.etherpad.entrypoints=websecure"
       - "traefik.http.routers.etherpad.tls=true"
       - "traefik.http.routers.etherpad.tls.certresolver=letsencrypt"
     volumes:

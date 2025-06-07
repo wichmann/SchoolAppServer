@@ -7,6 +7,7 @@ services:
     labels:
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
       - "traefik.http.routers.dashy.rule=Host(`${DASHY_DOMAIN}`)"
+      - "traefik.http.routers.dashy.entrypoints=websecure"
       - "traefik.http.routers.dashy.tls=true"
       - "traefik.http.routers.dashy.tls.certresolver=letsencrypt"
     networks:

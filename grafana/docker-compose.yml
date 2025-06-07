@@ -11,6 +11,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
     entrypoint:
@@ -49,6 +50,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.influxdb.loadbalancer.server.port=8086"
       - "traefik.http.routers.influxdb.rule=Host(`${INFLUX_DOMAIN}`)"
+      - "traefik.http.routers.influxdb.entrypoints=websecure"
       - "traefik.http.routers.influxdb.tls=true"
       - "traefik.http.routers.influxdb.tls.certresolver=letsencrypt"
     volumes:
@@ -93,6 +95,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.chronograf.loadbalancer.server.port=8888"
       - "traefik.http.routers.chronograf.rule=Host(`${CHRONOGRAF_DOMAIN}`)"
+      - "traefik.http.routers.chronograf.entrypoints=websecure"
       - "traefik.http.routers.chronograf.tls=true"
       - "traefik.http.routers.chronograf.tls.certresolver=letsencrypt"
       - "traefik.http.routers.chronograf.middlewares=chronograf-auth"
@@ -125,6 +128,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
       - "traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_DOMAIN}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
       - "traefik.http.routers.prometheus.tls=true"
       - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
     volumes:
@@ -144,6 +148,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.loki.loadbalancer.server.port=3100"
       - "traefik.http.routers.loki.rule=Host(`${LOKI_DOMAIN}`)"
+      - "traefik.http.routers.loki.entrypoints=websecure"
       - "traefik.http.routers.loki.tls=true"
       - "traefik.http.routers.loki.tls.certresolver=letsencrypt"
     volumes:
@@ -168,6 +173,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.alloy.loadbalancer.server.port=12345"
       - "traefik.http.routers.alloy.rule=Host(`${ALLOY_DOMAIN}`)"
+      - "traefik.http.routers.alloy.entrypoints=websecure"
       - "traefik.http.routers.alloy.tls=true"
       - "traefik.http.routers.alloy.tls.certresolver=letsencrypt"
     environment:

@@ -28,7 +28,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.moodle.loadbalancer.server.port=8080"
       - "traefik.http.routers.moodle.rule=Host(`${MOODLE_DOMAIN}`)"
-      #- "traefik.http.routers.moodle.rule=Host(`${MOODLE_DOMAIN1}`) || Host(`${MOODLE_DOMAIN2}`)"
+      - "traefik.http.routers.moodle.entrypoints=websecure"
       - "traefik.http.routers.moodle.tls=true"
       - "traefik.http.routers.moodle.tls.certresolver=letsencrypt"
       #- "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"

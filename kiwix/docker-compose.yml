@@ -7,6 +7,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.kiwix.loadbalancer.server.port=8080"
       - "traefik.http.routers.kiwix.rule=Host(`${KIWIX_DOMAIN}`)"
+      - "traefik.http.routers.kiwix.entrypoints=websecure"
       - "traefik.http.routers.kiwix.tls=true"
       - "traefik.http.routers.kiwix.tls.certresolver=letsencrypt"
     volumes:

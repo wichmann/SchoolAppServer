@@ -11,6 +11,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.kanboard.loadbalancer.server.port=80"
       - "traefik.http.routers.kanboard.rule=Host(`${KANBOARD_DOMAIN}`)"
+      - "traefik.http.routers.kanboard.entrypoints=websecure"
       - "traefik.http.routers.kanboard.tls=true"
       - "traefik.http.routers.kanboard.tls.certresolver=letsencrypt"
       - "com.centurylinklabs.watchtower.enable=false"

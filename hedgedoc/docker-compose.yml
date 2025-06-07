@@ -30,6 +30,7 @@ services:
       - traefik.enable=true
       - traefik.http.services.hedgedoc.loadbalancer.server.port=3000
       - traefik.http.routers.hedgedoc.rule=Host(`${HEDGEDOC_DOMAIN}`)
+      - traefik.http.routers.hedgedoc.entrypoints=websecure
       - traefik.http.routers.hedgedoc.tls=true
       - traefik.http.routers.hedgedoc.tls.certresolver=letsencrypt
       # prevent unauthorized access to the /metrics endpoint

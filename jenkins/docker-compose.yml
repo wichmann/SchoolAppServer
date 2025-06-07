@@ -6,6 +6,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
       - "traefik.http.routers.jenkins.rule=Host(`${JENKINS_DOMAIN}`)"
+      - "traefik.http.routers.jenkins.entrypoints=websecure"
       - "traefik.http.routers.jenkins.tls=true"
       - "traefik.http.routers.jenkins.tls.certresolver=letsencrypt"
     restart: always

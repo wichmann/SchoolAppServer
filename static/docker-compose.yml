@@ -6,6 +6,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.heimdall.loadbalancer.server.port=80"
       - "traefik.http.routers.heimdall.rule=Host(`${HEIMDALL_DOMAIN}`)"
+      - "traefik.http.routers.heimdall.entrypoints=websecure"
       - "traefik.http.routers.heimdall.tls=true"
       - "traefik.http.routers.heimdall.tls.certresolver=letsencrypt"
     volumes:
@@ -35,6 +36,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.homer.loadbalancer.server.port=8080"
       - "traefik.http.routers.homer.rule=Host(`${HOMER_DOMAIN}`)"
+      - "traefik.http.routers.homer.entrypoints=websecure"
       - "traefik.http.routers.homer.tls=true"
       - "traefik.http.routers.homer.tls.certresolver=letsencrypt"
     user: 1000:1000
@@ -48,6 +50,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.defaultpage.loadbalancer.server.port=80"
       - "traefik.http.routers.defaultpage.rule=Host(`${DEFAULTPAGE_DOMAIN}`)"
+      - "traefik.http.routers.defaultpage.entrypoints=websecure"
       - "traefik.http.routers.defaultpage.tls=true"
       - "traefik.http.routers.defaultpage.tls.certresolver=letsencrypt"
     volumes:
