@@ -1,0 +1,41 @@
+services:
+  mailserver:
+    image: ${STALWART_IMAGE}
+    restart: unless-stopped
+    hostname: ${STALWART_DOMAIN}
+    ports:
+      # directly map ports 25 (SMTP), 465 (ESMTP) and 993 (IMAPS) from host to container
+      # (using Traefik and the Proxy protocol to forward data does not work,
+      # sources: https://github.com/traefik/traefik/issues/11302, https://github.com/stalwartlabs/stalwart/discussions/356)
+      # commands to test SSL/TLS connections: https://gist.github.com/puRe1337/cdecc97307cc19c6d899a204b510834e
+      - "25:25"
+      - "465:465"
+      - "993:993"
+    networks:
+      - stalwart_net
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - stalwart_data:/opt/stalwart
+      - stalwart_certs:/data/certs:ro
+      # create password in config file with: printf "$(openssl passwd -6 password)\n"
+      #- ./config.toml:/opt/stalwart/etc/config.toml
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.stalwart-http.tls=true
+      - traefik.http.routers.stalwart-http.tls.certresolver=letsencrypt
+      - traefik.http.routers.stalwart-http.rule=Host(`${STALWART_DOMAIN}`) || Host(`autodiscover.${STALWART_BASE_DOMAIN}`) || Host(`autoconfig.${STALWART_BASE_DOMAIN}`) || Host(`mta-sts.${STALWART_BASE_DOMAIN}`)
+      - traefik.http.routers.stalwart-http.entrypoints=websecure
+      - traefik.http.routers.stalwart-http.service=stalwart-http
+      - traefik.http.services.stalwart-http.loadbalancer.server.port=8080
+
+volumes:
+  stalwart_data:
+  stalwart_certs:
+    name: infrastructure_traefik_certs
+    external: true
+
+networks:
+  stalwart_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true

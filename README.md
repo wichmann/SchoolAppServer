@@ -38,6 +38,9 @@ This repository provides Docker stacks containing the following services:
 * Homer - A very simple static homepage for your server
 * Heimdall - An Application dashboard and launcher
 * Dashy - A self-hostable personal dashboard built for you.
+* phpMyAdmin - Web interface for MySQL and MariaDB
+* Stalwart - All-in-one Mail & Collaboration server supporting every protocol (IMAP, JMAP, SMTP, CalDAV, CardDAV, WebDAV)
+* Immmich - High performance self-hosted photo and video management solution
 
 ![Screenshot of SchoolAppServer](docs/images/screenshot_status.png)
 

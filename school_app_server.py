@@ -86,7 +86,10 @@ SUBDOMAIN_MAP = {
     'AUTHENTIK_DOMAIN': 'auth',
     'KIWIX_DOMAIN': 'kiwix',
     'HESK_DOMAIN': 'hesk',
-    'DASHY_DOMAIN': 'dash'
+    'DASHY_DOMAIN': 'dash',
+    'STALWART_DOMAIN': 'mail',
+    'STALWART_BASE_DOMAIN': '',
+    'IMMICH_DOMAIN': 'images'
 }
 
 app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, Uptime Kuma, Watchtower)',
@@ -112,7 +115,9 @@ app_name_map = {'infrastructure': 'Infrastructure Services (Traefik, Portainer, 
                 'tools': 'Tools (Stirling PDF)', 'static': 'Landing Pages (Heimdall, Homer)',
                 'dashy': 'Dashy - A self-hostable personal dashboard built for you',
                 'opencart': 'OpenCart - Open Source Shopping Cart Solution (not yet working!)',
-                'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)'}
+                'phpmyadmin': 'phpMyAdmin - Web interface for MySQL and MariaDB (not yet working!)',
+                'stalwart': 'Stalwart - All-in-one Mail & Collaboration server supporting every protocol (IMAP, JMAP, SMTP, CalDAV, CardDAV, WebDAV)',
+                'immich': 'Immmich - High performance self-hosted photo and video management solution.'}
 
 basic_configuration = {}
 
