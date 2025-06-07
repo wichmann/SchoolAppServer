@@ -33,6 +33,8 @@ services:
       - "traefik.http.routers.etherpad.tls.certresolver=letsencrypt"
     volumes:
       - etherpad_data:/opt/etherpad-lite
+      #- plugins:/opt/etherpad-lite/src/plugin_packages
+      #- etherpad-var:/opt/etherpad-lite/var
     networks:
       - etherpad_net
     environment:
@@ -42,11 +44,14 @@ services:
       - DB_NAME=etherpad
       - DB_USER=etherpad
       - DB_PASS=/run/secrets/etherpad_db_password
-      - INSTALL_SOFFICE=true
+      - DB_CHARSET=utf8mb4
       - ADMIN_PASSWORD=/run/secrets/etherpad_admin_password
       - DISABLE_IP_LOGGING=true
-      - PAD_OPTIONS_LANG=de-de
+      - INSTALL_SOFFICE=true
       - TRUST_PROXY=true
+      - NODE_ENV=production
+      - PAD_OPTIONS_LANG=de-de
+      - DEFAULT_PAD_TEXT="Willkommen in diesem neuen Etherpad..."
     secrets:
       - etherpad_db_password
       - etherpad_admin_password
