@@ -44,6 +44,16 @@ services:
     secrets:
       - traefik_dashboard_auth
 
+  traefik-certs-dumper:
+    image: ${TRAEFIK_CERTS_DUMPER_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - reverse-proxy
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "./acme.json:/traefik/acme.json:ro"
+      - traefik_certs:/output
+
   portainer:
     # Management app for containers, volumes, etc.
     # Documentation: https://docs.portainer.io/user/home
@@ -127,6 +137,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
+  traefik_certs:
   portainer_data:
   uptime_kuma:
 

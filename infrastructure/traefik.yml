@@ -27,6 +27,10 @@ entryPoints:
   websecure:
     address: :443
     http3: {}
+    # set certificate resolver for all routers
+    http:
+      tls:
+        certResolver: letsencrypt
 
 ################################################################
 # Traefik logs configuration
