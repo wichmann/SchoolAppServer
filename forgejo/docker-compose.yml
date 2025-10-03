@@ -1,0 +1,85 @@
+services:
+  forgejo-db:
+    image: ${FORGEJO_DB_IMAGE}
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    environment:
+      - POSTGRES_DB=forgejo
+      - POSTGRES_PASSWORD=/run/secrets/forgejo_db_password
+      - POSTGRES_USER=forgejo
+    volumes:
+      - forgejo_db_data:/var/lib/postgresql/data
+    networks:
+      - forgejo_net
+    secrets:
+      - forgejo_db_password
+
+  forgejo:
+    # Hosting app for Git repositories (fork of Gitea)
+    image: ${FORGEJO_IMAGE}
+    restart: always
+    depends_on:
+      - forgejo-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.forgejo.loadbalancer.server.port=3000"
+      - "traefik.http.routers.forgejo.rule=Host(`${FORGEJO_DOMAIN}`)"
+      - "traefik.http.routers.forgejo.entrypoints=websecure"
+      - "traefik.http.routers.forgejo.tls=true"
+      - "traefik.http.routers.forgejo.tls.certresolver=letsencrypt"
+      # TODO: Check if port for SSH access is necessary?
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      # Source: https://forgejo.org/docs/latest/admin/config-cheat-sheet/
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=forgejo-db:5432
+      - FORGEJO__database__NAME=forgejo
+      - FORGEJO__database__USER=forgejo
+      - FORGEJO__database__PASSWD=/run/secrets/forgejo_db_password
+      - FORGEJO__service__REGISTER_MANUAL_CONFIRM=true
+      #- FORGEJO__service__DISABLE_REGISTRATION=true
+      - FORGEJO__openid__ENABLE_OPENID_SIGNIN=true
+      - FORGEJO__openid__ENABLE_OPENID_SIGNUP=true
+      - FORGEJO__mailer__ENABLED=true
+      - FORGEJO__mailer__PROTOCOL=smtp #smtp+starttls
+      - FORGEJO__mailer__SMTP_ADDR=${FORGEJO_SMTP_ADDR}
+      - FORGEJO__mailer__SMTP_PORT=${FORGEJO_SMTP_PORT}
+      - FORGEJO__mailer__USER=${FORGEJO_SMTP_USER}
+      - FORGEJO__mailer__PASSWD=/run/secrets/forgejo_smtp_password
+      - FORGEJO__mailer__FROM=${FORGEJO_SMTP_USER}
+      - FORGEJO__metrics__ENABLED=true
+      - FORGEJO__metrics__TOKEN=/run/secrets/forgejo_metrics_token
+    volumes:
+      - forgejo_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - forgejo_net
+    secrets:
+      - forgejo_db_password
+      - forgejo_metrics_token
+      - forgejo_smtp_password
+
+volumes:
+  forgejo_data:
+  forgejo_db_data:
+
+networks:
+  forgejo_net:
+    # https://docs.docker.com/compose/networking/#use-a-pre-existing-network
+    name: infrastructure_default
+    external: true
+
+secrets:
+  forgejo_db_password:
+    file: forgejo_db_password.txt
+  forgejo_metrics_token:
+    file: forgejo_metrics_token.txt
+  forgejo_smtp_password:
+    file: forgejo_smtp_password.txt
