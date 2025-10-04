@@ -51,10 +51,10 @@ services:
       - FORGEJO__mailer__SMTP_ADDR=${FORGEJO_SMTP_ADDR}
       - FORGEJO__mailer__SMTP_PORT=${FORGEJO_SMTP_PORT}
       - FORGEJO__mailer__USER=${FORGEJO_SMTP_USER}
-      - FORGEJO__mailer__PASSWD=/run/secrets/forgejo_smtp_password
+      - FORGEJO__mailer__PASSWD=${FORGEJO_SMTP_PASSWORD}
       - FORGEJO__mailer__FROM=${FORGEJO_SMTP_USER}
       - FORGEJO__metrics__ENABLED=true
-      - FORGEJO__metrics__TOKEN=/run/secrets/forgejo_metrics_token
+      - FORGEJO__metrics__TOKEN=${FORGEJO_METRICS_TOKEN}
     volumes:
       - forgejo_data:/data
       - /etc/timezone:/etc/timezone:ro
@@ -63,8 +63,6 @@ services:
       - forgejo_net
     secrets:
       - forgejo_db_password
-      - forgejo_metrics_token
-      - forgejo_smtp_password
 
 volumes:
   forgejo_data:
@@ -79,7 +77,3 @@ networks:
 secrets:
   forgejo_db_password:
     file: forgejo_db_password.txt
-  forgejo_metrics_token:
-    file: forgejo_metrics_token.txt
-  forgejo_smtp_password:
-    file: forgejo_smtp_password.txt
