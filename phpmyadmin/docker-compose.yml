@@ -11,6 +11,13 @@ services:
       - MARIADB_COLLATE=utf8mb4_unicode_ci
     volumes:
       - phpmyadmin_db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - phpmyadmin_net
     secrets:
@@ -21,7 +28,8 @@ services:
     image: ${PHPMYADMIN_IMAGE}
     restart: unless-stopped
     depends_on:
-      - phpmyadmin-db
+      phpmyadmin-db:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.phpmyadmin.loadbalancer.server.port=80"

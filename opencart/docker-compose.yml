@@ -7,6 +7,12 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - opencart_db_data:/var/lib/mysql
+    healthcheck:
+      # source: https://github.com/nextcloud/docker/issues/676#issuecomment-1491667563
+      test: curl -sSf 'http://localhost/status.php' | grep '"installed":true' | grep '"maintenance":false' | grep '"needsDbUpgr>
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - opencart_net
     environment:
@@ -27,7 +33,8 @@ services:
     #       and uses it's own certificates?!
     image: ${OPENCART_IMAGE}
     depends_on:
-      - opencart-db
+      opencart-db:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.opencart.loadbalancer.server.port=8080"

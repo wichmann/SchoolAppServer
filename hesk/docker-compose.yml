@@ -4,7 +4,8 @@ services:
     image: ${HESK_IMAGE}
     restart: unless-stopped
     depends_on:
-      - hesk-db
+      hesk-db:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.hesk.loadbalancer.server.port=8080"
@@ -28,6 +29,13 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - hesk_db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - hesk_net
     environment:
